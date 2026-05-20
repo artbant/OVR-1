@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>СКЯ-ОБС / SKY-OBS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --fg: #e8e8e0;
+    --fg2: #a0a098;
+    --fg3: #585850;
+    --acc: #ffffff;
+    --dim: #404038;
+  }
+
+  html, body {
+    height: 100%;
+    background: #000;
+    color: var(--fg);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-size: clamp(11px, 2.8vw, 14px);
+    line-height: 1.4;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding: 10px 12px 8px;
+    gap: 6px;
+    position: relative;
+  }
+
+  /* CRT scanlines overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--dim);
+    padding-bottom: 4px;
+    flex-shrink: 0;
+  }
+
+  .sys-id {
+    font-size: 1.1em;
+    color: var(--acc);
+    letter-spacing: 0.1em;
+  }
+
+  .clock {
+    font-size: 0.95em;
+    color: var(--fg2);
+  }
+
+  /* ── SECTION LABEL ── */
+  .sec-label {
+    font-size: 0.72em;
+    color: var(--fg3);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
+
+  /* ── MAIN GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 8px 14px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .block { min-width: 0; }
+  .block-wide { grid-column: 1 / -1; }
+
+  /* ── MOON BLOCK ── */
+  .moon-wrap {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  #moon-canvas {
+    flex-shrink: 0;
+    line-height: 1.2;
+    font-size: 0.85em;
+    color: var(--fg2);
+    white-space: pre;
+    letter-spacing: 0.05em;
+  }
+
+  .moon-data { flex: 1; min-width: 0; }
+
+  .moon-phase-name {
+    color: var(--acc);
+    font-size: 1em;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+
+  .kv { display: flex; justify-content: space-between; gap: 4px; }
+  .kv .k { color: var(--fg3); font-size: 0.78em; }
+  .kv .v { color: var(--fg); font-size: 0.85em; }
+
+  /* ── COMPASS ── */
+  #compass-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  #compass-ascii {
+    white-space: pre;
+    font-size: 0.82em;
+    line-height: 1.25;
+    color: var(--fg2);
+    text-align: center;
+  }
+
+  #compass-heading {
+    font-size: 1.3em;
+    color: var(--acc);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  #compass-deg {
+    font-size: 0.78em;
+    color: var(--fg3);
+    text-align: center;
+  }
+
+  /* ── ALTITUDE ── */
+  .alt-big {
+    font-size: 2em;
+    color: var(--acc);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  .alt-unit {
+    font-size: 0.8em;
+    color: var(--fg3);
+    margin-left: 2px;
+  }
+
+  .alt-bar {
+    margin-top: 4px;
+    height: 6px;
+    background: var(--dim);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .alt-fill {
+    height: 100%;
+    background: var(--fg2);
+    transition: width 1s;
+  }
+
+  .alt-ascii {
+    margin-top: 3px;
+    font-size: 0.7em;
+    color: var(--fg3);
+    white-space: pre;
+    overflow: hidden;
+  }
+
+  /* ── AURORA ── */
+  .kp-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .kp-val {
+    font-size: 1.8em;
+    color: var(--acc);
+    line-height: 1;
+  }
+
+  .kp-bar-wrap {
+    flex: 1;
+  }
+
+  .kp-bar {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  .kp-seg {
+    flex: 1;
+    height: 10px;
+    background: var(--dim);
+    font-size: 0;
+  }
+
+  .kp-seg.on { background: var(--fg); }
+  .kp-seg.warn { background: var(--fg2); }
+
+  .aurora-status {
+    font-size: 0.78em;
+    color: var(--fg2);
+    letter-spacing: 0.1em;
+  }
+
+  .aurora-dots {
+    font-size: 0.7em;
+    color: var(--fg3);
+    white-space: pre;
+    margin-top: 2px;
+  }
+
+  /* ── PLANES ── */
+  .plane-list {
+    font-size: 0.78em;
+    line-height: 1.6;
+  }
+
+  .plane-row {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px dotted var(--dim);
+    padding: 1px 0;
+  }
+
+  .plane-call { color: var(--acc); min-width: 7ch; }
+  .plane-info { color: var(--fg2); flex: 1; }
+  .plane-alt-r { color: var(--fg3); text-align: right; min-width: 6ch; }
+
+  .plane-radar {
+    position: relative;
+    margin-top: 4px;
+    height: 52px;
+    overflow: hidden;
+  }
+
+  #radar-ascii {
+    white-space: pre;
+    font-size: 0.62em;
+    color: var(--fg3);
+    line-height: 1.15;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  /* ── COORDS BAR ── */
+  .coords-bar {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--dim);
+    padding-top: 4px;
+    flex-shrink: 0;
+    font-size: 0.72em;
+    color: var(--fg3);
+  }
+
+  .coords-bar span { color: var(--fg2); }
+
+  /* ── STATUS LINE ── */
+  .status-line {
+    font-size: 0.68em;
+    color: var(--fg3);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* blink cursor */
+  .cursor::after {
+    content: '█';
+    animation: blink 1.1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .err { color: #555; }
+
+  /* permission button */
+  #compass-btn {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--fg3);
+    font-family: inherit;
+    font-size: 0.72em;
+    padding: 2px 6px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    margin-top: 3px;
+  }
+  #compass-btn:hover { border-color: var(--fg2); color: var(--fg); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="sys-id">СКЯ-ОБС_v2.1</div>
+  <div class="clock" id="clock">--:--:--</div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="grid">
+
+  <!-- MOON -->
+  <div class="block block-wide">
+    <div class="sec-label">// ЛУНА</div>
+    <div class="moon-wrap">
+      <div id="moon-canvas">···</div>
+      <div class="moon-data">
+        <div class="moon-phase-name" id="moon-phase-name">ЗАГРУЗКА...</div>
+        <div class="kv"><span class="k">ОСВЕЩ</span><span class="v" id="moon-illum">--%</span></div>
+        <div class="kv"><span class="k">ДЕНЬ</span><span class="v" id="moon-age">-- д</span></div>
+        <div class="kv"><span class="k">СЛЕД.ФАЗ</span><span class="v" id="moon-next">--</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPASS -->
+  <div class="block">
+    <div class="sec-label">// КОМПАС</div>
+    <div id="compass-wrap">
+      <pre id="compass-ascii">  [N]
+W -+- E
+  [S]</pre>
+      <div id="compass-heading">---</div>
+      <div id="compass-deg">--- °</div>
+      <button id="compass-btn" onclick="requestCompass()">РАЗРЕШИТЬ</button>
+    </div>
+  </div>
+
+  <!-- ALTITUDE -->
+  <div class="block">
+    <div class="sec-label">// ВЫСОТА</div>
+    <div class="alt-big"><span id="alt-val">----</span><span class="alt-unit">м</span></div>
+    <div class="alt-bar"><div class="alt-fill" id="alt-fill" style="width:0%"></div></div>
+    <div class="alt-ascii" id="alt-ascii">................</div>
+    <div class="kv" style="margin-top:3px">
+      <span class="k">ТОЧН</span><span class="v" id="alt-acc">±-- м</span>
+    </div>
+    <div class="kv">
+      <span class="k">LAT/LON</span><span class="v" id="alt-coord">--.-- / --.--</span>
+    </div>
+  </div>
+
+  <!-- AURORA -->
+  <div class="block">
+    <div class="sec-label">// АВРОРА / KP</div>
+    <div class="kp-row">
+      <div class="kp-val" id="kp-val">-.-</div>
+      <div class="kp-bar-wrap">
+        <div class="kp-bar" id="kp-bar">
+          <div class="kp-seg" data-i="0"></div>
+          <div class="kp-seg" data-i="1"></div>
+          <div class="kp-seg" data-i="2"></div>
+          <div class="kp-seg" data-i="3"></div>
+          <div class="kp-seg" data-i="4"></div>
+          <div class="kp-seg" data-i="5"></div>
+          <div class="kp-seg" data-i="6"></div>
+          <div class="kp-seg" data-i="7"></div>
+          <div class="kp-seg" data-i="8"></div>
+        </div>
+        <div class="aurora-status" id="aurora-status">ОПРОС NOAA...</div>
+      </div>
+    </div>
+    <div class="aurora-dots" id="aurora-dots">. . . . . . . . . . . .</div>
+  </div>
+
+  <!-- PLANES -->
+  <div class="block block-wide">
+    <div class="sec-label">// САМОЛЁТЫ НАД ГОЛОВОЙ</div>
+    <div class="plane-list" id="plane-list">
+      <div style="color:var(--fg3)">ОПРОС OPENSKY...</div>
+    </div>
+    <div class="plane-radar">
+      <pre id="radar-ascii"></pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- COORDS BAR -->
+<div class="coords-bar">
+  <div>LAT <span id="coord-lat">---.----</span></div>
+  <div>LON <span id="coord-lon">---.----</span></div>
+  <div>ALT <span id="coord-alt">--- M</span></div>
+</div>
+
+<!-- STATUS -->
+<div class="status-line" id="status-line">ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...<span class="cursor"></span></div>
+
+<script>
+// ── CLOCK ──
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    n.toTimeString().slice(0,8);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── STATUS ──
+function setStatus(msg) {
+  document.getElementById('status-line').innerHTML = msg + '<span class="cursor"></span>';
+}
+
+// ── MOON MATH ──
+function getMoonData() {
+  const now = new Date();
+  const known = new Date('2000-01-06T18:14:00Z');
+  const syno = 29.53058867;
+  const diff = (now - known) / 86400000;
+  let age = ((diff % syno) + syno) % syno;
+  const illum = Math.round((1 - Math.cos(2 * Math.PI * age / syno)) / 2 * 100);
+  const phases = [
+    [0.0, 'НОВОЛУНИЕ', '●'],
+    [0.125, 'МОЛОДОЙ СЕРП', '🌒'],
+    [0.25, 'ПЕРВАЯ ЧЕТВЕРТЬ', '◑'],
+    [0.375, 'ПРИБЫВАЮЩАЯ', '🌔'],
+    [0.5, 'ПОЛНОЛУНИЕ', '○'],
+    [0.625, 'УБЫВАЮЩАЯ', '🌖'],
+    [0.75, 'ПОСЛЕДНЯЯ ЧЕТВЕРТЬ', '◐'],
+    [0.875, 'СТАРЫЙ СЕРП', '🌘'],
+    [1.0, 'НОВОЛУНИЕ', '●'],
+  ];
+  const frac = age / syno;
+  let phaseName = phases[0][1];
+  for (let i = phases.length - 1; i >= 0; i--) {
+    if (frac >= phases[i][0] - 0.0625) { phaseName = phases[i][1]; break; }
+  }
+  const daysToNext = (Math.ceil(age / (syno / 8)) * (syno / 8)) - age;
+  const nextDate = new Date(now.getTime() + daysToNext * 86400000);
+  const nextStr = nextDate.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+
+  document.getElementById('moon-phase-name').textContent = phaseName;
+  document.getElementById('moon-illum').textContent = illum + '%';
+  document.getElementById('moon-age').textContent = age.toFixed(1) + ' д';
+  document.getElementById('moon-next').textContent = nextStr;
+
+  // Draw ASCII moon
+  const canvas = document.getElementById('moon-canvas');
+  canvas.textContent = drawMoonASCII(frac, illum);
+}
+
+function drawMoonASCII(frac, illum) {
+  const W = 9, H = 7;
+  const rows = [];
+  for (let r = 0; r < H; r++) {
+    let row = '';
+    const y = (r / (H-1)) * 2 - 1;
+    for (let c = 0; c < W; c++) {
+      const x = (c / (W-1)) * 2 - 1;
+      const dist = Math.sqrt(x*x + y*y);
+      if (dist > 1.0) { row += ' '; continue; }
+      // Determine lit side
+      const litX = frac < 0.5 ? x : -x;
+      const terminator = Math.sqrt(1 - y*y) * Math.cos(Math.PI * (frac < 0.5 ? frac : frac - 0.5) * 2);
+      const lit = frac < 0.5 ? (litX > -terminator) : (litX < terminator);
+      if (dist > 0.85) row += lit ? '+' : '.';
+      else if (dist > 0.5) row += lit ? 'o' : ':';
+      else row += lit ? 'O' : ',';
+    }
+    rows.push(row);
+  }
+  return rows.join('\n');
+}
+
+getMoonData();
+
+// ── GEOLOCATION ──
+let userLat = null, userLon = null;
+
+function initGeo() {
+  if (!navigator.geolocation) {
+    setStatus('ГЕОЛОК: НЕ ПОДДЕРЖИВАЕТСЯ');
+    return;
+  }
+  setStatus('ЗАПРОС ГЕОЛОКАЦИИ...');
+  navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, {
+    enableHighAccuracy: true, maximumAge: 30000
+  });
+}
+
+function onGeoSuccess(pos) {
+  userLat = pos.coords.latitude;
+  userLon = pos.coords.longitude;
+  const alt = pos.coords.altitude;
+  const acc = pos.coords.accuracy;
+
+  document.getElementById('coord-lat').textContent = userLat.toFixed(4);
+  document.getElementById('coord-lon').textContent = userLon.toFixed(4);
+
+  if (alt !== null) {
+    const altR = Math.round(alt);
+    document.getElementById('alt-val').textContent = altR;
+    document.getElementById('coord-alt').textContent = altR + ' M';
+    document.getElementById('alt-acc').textContent = '±' + Math.round(pos.coords.altitudeAccuracy || acc) + ' м';
+    const pct = Math.min(100, Math.max(0, (altR / 3000) * 100));
+    document.getElementById('alt-fill').style.width = pct + '%';
+    let bar = '';
+    for (let i = 0; i < 18; i++) bar += (i / 18 < pct / 100) ? '█' : '·';
+    document.getElementById('alt-ascii').textContent = bar;
+  } else {
+    document.getElementById('alt-val').textContent = 'N/A';
+    document.getElementById('alt-ascii').textContent = 'GPS БЕЗ БАРОМЕТРА';
+    document.getElementById('coord-alt').textContent = '--- M';
+  }
+
+  if (acc) document.getElementById('alt-acc').textContent = '±' + Math.round(acc) + ' м';
+
+  setStatus('ГЕОЛОК ОК · ДАННЫЕ ОБНОВЛЕНЫ');
+  fetchAurora();
+  fetchPlanes();
+}
+
+function onGeoError(e) {
+  setStatus('ГЕОЛОК ОШИБКА: ' + (e.message || e.code));
+  document.getElementById('alt-val').textContent = 'ERR';
+  // Still try aurora with default coords
+  fetchAurora();
+}
+
+// ── COMPASS ──
+let compassActive = false;
+
+function requestCompass() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(state => {
+      if (state === 'granted') startCompass();
+    }).catch(console.error);
+  } else {
+    startCompass();
+  }
+}
+
+function startCompass() {
+  if (compassActive) return;
+  compassActive = true;
+  document.getElementById('compass-btn').style.display = 'none';
+  window.addEventListener('deviceorientationabsolute', onOrientation, true);
+  window.addEventListener('deviceorientation', onOrientation, true);
+}
+
+function onOrientation(e) {
+  let heading = null;
+  if (e.webkitCompassHeading != null) heading = e.webkitCompassHeading;
+  else if (e.absolute && e.alpha != null) heading = (360 - e.alpha) % 360;
+  else if (e.alpha != null) heading = (360 - e.alpha) % 360;
+  if (heading === null) return;
+
+  const deg = Math.round(heading);
+  const dirs = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ','С'];
+  const dir = dirs[Math.round(deg / 45) % 8];
+
+  document.getElementById('compass-heading').textContent = dir;
+  document.getElementById('compass-deg').textContent = deg + ' °';
+
+  const rad = (heading * Math.PI) / 180;
+  const nx = Math.round(2 * Math.sin(rad));
+  const ny = Math.round(-2 * Math.cos(rad));
+  const arrow = getArrowChar(heading);
+
+  const compass = [
+    '   N   ',
+    ' .   . ',
+    'W  ' + arrow + '  E',
+    ' .   . ',
+    '   S   '
+  ];
+  document.getElementById('compass-ascii').textContent = compass.join('\n');
+}
+
+function getArrowChar(deg) {
+  const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
+  return arrows[Math.round(deg / 45) % 8];
+}
+
+// ── AURORA / KP-INDEX ──
+async function fetchAurora() {
+  document.getElementById('aurora-status').textContent = 'ОПРОС NOAA...';
+  try {
+    const r = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json');
+    const data = await r.json();
+    if (!data || data.length < 2) throw new Error('no data');
+    const last = data[data.length - 1];
+    const kp = parseFloat(last[1]);
+    document.getElementById('kp-val').textContent = kp.toFixed(1);
+
+    const segs = document.querySelectorAll('.kp-seg');
+    segs.forEach((s, i) => {
+      s.classList.remove('on', 'warn');
+      if (i < Math.floor(kp)) s.classList.add(kp >= 5 ? 'warn' : 'on');
+    });
+
+    let status, dots;
+    if (kp < 2) { status = 'ТИХО · АВРОРЫ НЕТ'; dots = '. . . . . . . . . . . .'; }
+    else if (kp < 4) { status = 'СЛАБАЯ АКТИВНОСТЬ'; dots = '. * . . * . . . * . . .'; }
+    else if (kp < 6) { status = 'УМЕРЕННАЯ · АВРОРА ВИДНА'; dots = '* . * * . * * . * * . *'; }
+    else if (kp < 8) { status = 'СИЛЬНАЯ БУРЯ · ЯРКАЯ АВРОРА'; dots = '* * * * * * * * * * * *'; }
+    else { status = '!! ЭКСТРЕМ. БУРЯ !!'; dots = '█ █ █ █ █ █ █ █ █ █ █ █'; }
+
+    document.getElementById('aurora-status').textContent = status;
+    document.getElementById('aurora-dots').textContent = dots;
+    setStatus('KP-ИНДЕКС ПОЛУЧЕН · ' + new Date().toTimeString().slice(0,5));
+  } catch(e) {
+    document.getElementById('aurora-status').textContent = 'ОШИБКА NOAA';
+    document.getElementById('kp-val').textContent = 'ERR';
+    setStatus('AURORA: ОШИБКА ЗАПРОСА');
+  }
+}
+
+// ── PLANES ──
+async function fetchPlanes() {
+  if (!userLat || !userLon) return;
+  const d = 1.5;
+  const laMin = userLat - d, laMax = userLat + d;
+  const loMin = userLon - d, loMax = userLon + d;
+  const url = `https://opensky-network.org/api/states/all?lamin=${laMin}&lomin=${loMin}&lamax=${laMax}&lomax=${loMax}`;
+
+  document.getElementById('plane-list').innerHTML = '<div style="color:var(--fg3)">ОПРОС OPENSKY...</div>';
+
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const states = data.states || [];
+
+    if (states.length === 0) {
+      document.getElementById('plane-list').innerHTML =
+        '<div class="err">НЕТ ВОЗДУШНЫХ СУДОВ В ЗОНЕ</div>';
+      drawRadar([]);
+      return;
+    }
+
+    const planes = states.slice(0, 5).map(s => ({
+      call: (s[1] || '??????').trim() || 'N/A',
+      lat: s[6],
+      lon: s[5],
+      alt: s[7] ? Math.round(s[7]) : null,
+      vel: s[9] ? Math.round(s[9] * 3.6) : null,
+      hdg: s[10] ? Math.round(s[10]) : null,
+    }));
+
+    const listEl = document.getElementById('plane-list');
+    listEl.innerHTML = '';
+    planes.forEach(p => {
+      const dist = p.lat && p.lon ? calcDist(userLat, userLon, p.lat, p.lon) : null;
+      const row = document.createElement('div');
+      row.className = 'plane-row';
+      row.innerHTML =
+        `<span class="plane-call">${p.call}</span>` +
+        `<span class="plane-info">${p.vel ? p.vel+'км/ч' : '---'} ${p.hdg !== null ? hdgToDir(p.hdg) : ''}${dist ? ' ~'+dist+'км' : ''}</span>` +
+        `<span class="plane-alt-r">${p.alt ? p.alt+'м' : '---'}</span>`;
+      listEl.appendChild(row);
+    });
+
+    drawRadar(planes);
+    setStatus('OPENSKY: ' + states.length + ' СУДОВ НАЙДЕНО');
+  } catch(e) {
+    document.getElementById('plane-list').innerHTML =
+      '<div class="err">OPENSKY: ОШИБКА (' + e.message + ')</div>';
+    drawRadar([]);
+    setStatus('OPENSKY: ОШИБКА ЗАПРОСА');
+  }
+}
+
+function calcDist(la1, lo1, la2, lo2) {
+  const R = 6371;
+  const dLa = (la2-la1)*Math.PI/180;
+  const dLo = (lo2-lo1)*Math.PI/180;
+  const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+function hdgToDir(h) {
+  const d = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
+  return d[Math.round(h/45)%8];
+}
+
+function drawRadar(planes) {
+  const W = 38, H = 4;
+  const grid = Array.from({length: H}, () => Array(W).fill('.'));
+  // Center cross
+  const cx = Math.floor(W/2), cy = Math.floor(H/2);
+  grid[cy][cx] = '+';
+
+  planes.forEach((p, idx) => {
+    if (!p.lat || !p.lon || !userLat || !userLon) return;
+    const dx = (p.lon - userLon) / 1.5;
+    const dy = (userLat - p.lat) / 1.5;
+    const px = Math.round(cx + dx * (W/2 - 1));
+    const py = Math.round(cy + dy * (H/2 - 1));
+    if (px >= 0 && px < W && py >= 0 && py < H) {
+      grid[py][px] = String.fromCharCode(65 + idx); // A B C...
+    }
+  });
+
+  document.getElementById('radar-ascii').textContent =
+    grid.map(r => r.join('')).join('\n');
+}
+
+// ── INIT ──
+initGeo();
+fetchAurora();
+
+// Refresh planes every 30s
+setInterval(() => { if (userLat) fetchPlanes(); }, 30000);
+// Refresh aurora every 3min
+setInterval(fetchAurora, 180000);
+</script>
+</body>
+</html>
