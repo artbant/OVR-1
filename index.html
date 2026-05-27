@@ -28,7 +28,7 @@ html,body{
 }
 body{
   display:grid;
-  grid-template-rows:auto auto auto auto auto 1fr auto auto;
+  grid-template-rows:auto auto auto auto auto auto 1fr auto auto;
   height:100dvh;padding:9px 11px 7px;gap:5px;
 }
 body::after{
@@ -60,13 +60,11 @@ body::after{
 .row-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 /* moon */
-.moon-wrap{display:flex;gap:8px;align-items:flex-start}
-#moon-ascii{font-size:0.78em;line-height:1.2;color:var(--fg2);white-space:pre;flex-shrink:0}
-.moon-info{display:flex;flex-direction:column;gap:1px}
-.moon-name{font-size:0.88em;color:var(--acc);margin-bottom:2px}
-.mrow{display:flex;gap:4px;align-items:baseline}
-.mrow .k{font-size:0.65em;color:var(--fg3)}
-.mrow .v{font-size:0.78em;color:var(--fg)}
+.moon-name{font-size:0.88em;color:var(--acc);margin-bottom:4px;letter-spacing:0.04em}
+.moon-cols{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.mrow{display:flex;flex-direction:column;gap:0px}
+.mrow .k{font-size:0.62em;color:var(--fg3)}
+.mrow .v{font-size:0.82em;color:var(--fg)}
 
 /* compass */
 .compass-outer{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -90,6 +88,25 @@ body::after{
 }
 #compass-btn:hover{border-color:var(--fg2);color:var(--fg)}
 
+/* COMBINED ROW: chart + итого */
+.row-combined{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+.combined-chart{display:flex;flex-direction:column}
+.combined-итого{display:flex;flex-direction:column}
+.hourly-chart{
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.6em;line-height:1.55;color:var(--fg3);
+  overflow:hidden;margin-top:3px;flex:1;
+}
+
+/* PRESSURE TREND */
+.ptup{color:var(--bad)}
+.ptdown{color:var(--warn)}
+.ptstable{color:var(--fg3)}
+
 /* ROW FORECAST */
 .row-fc{border:1px solid var(--dim);padding:6px 8px}
 .fc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 8px;margin-top:3px}
@@ -106,20 +123,14 @@ body::after{
 }
 .go{color:var(--good)}.nogo{color:var(--bad)}.caution{color:var(--warn)}
 
-/* ── ИТОГО BLOCK ── */
-.row-итого{border:1px solid var(--dim);padding:7px 9px;background:var(--dim2)}
-.итого-main{
-  display:flex;align-items:baseline;gap:10px;
-  margin-bottom:5px;padding-bottom:5px;
-  border-bottom:1px solid var(--dim);
-}
-.итого-verdict{font-size:1.4em;letter-spacing:0.06em;line-height:1}
-.итого-factors{display:flex;flex-direction:column;gap:3px}
-.factor{display:flex;gap:6px;align-items:baseline;font-size:0.72em}
-.factor-icon{color:var(--fg3);min-width:1.2em}
-.factor-label{color:var(--fg3);min-width:7em}
-.factor-val{color:var(--fg2)}
-.factor-verdict{margin-left:auto;text-align:right}
+/* ── ИТОГО ── */
+.итого-verdict{font-size:1.15em;letter-spacing:0.05em;line-height:1}
+.итого-factors{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.factor{display:flex;gap:4px;align-items:baseline;font-size:0.68em}
+.factor-icon{color:var(--fg3);min-width:1em;flex-shrink:0}
+.factor-label{color:var(--fg3);min-width:5em;flex-shrink:0}
+.factor-val{color:var(--fg2);min-width:3em}
+.factor-verdict{color:var(--fg3);flex:1;text-align:right;font-size:0.95em}
 .fv-ok{color:var(--good)}.fv-warn{color:var(--warn)}.fv-bad{color:var(--bad)}.fv-neutral{color:var(--fg3)}
 
 /* MAP */
@@ -153,6 +164,57 @@ body::after{
 .statusline{font-size:0.62em;color:var(--fg3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .cursor::after{content:'█';animation:blink 1.1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* SETTINGS ROW */
+.row-settings{
+  display:grid;grid-template-columns:auto 1fr;gap:8px 14px;
+  align-items:start;border:1px solid var(--dim);padding:6px 8px;
+}
+.setting-group{display:flex;flex-direction:column;gap:3px}
+
+/* VESSEL SELECTOR */
+.vessel-btns{display:flex;gap:4px;flex-wrap:wrap}
+.vbtn{
+  background:transparent;border:1px solid var(--dim);
+  color:var(--fg3);font-family:'Share Tech Mono',monospace;
+  font-size:0.68em;padding:2px 7px;cursor:pointer;letter-spacing:0.08em;
+  transition:all 0.12s;
+}
+.vbtn:hover{border-color:var(--fg2);color:var(--fg2)}
+.vbtn.active{border-color:var(--fg);color:var(--acc);background:var(--dim2)}
+
+/* DESTINATION */
+.dest-wrap{display:flex;gap:4px;align-items:center}
+.dest-input{
+  flex:1;background:transparent;border:1px solid var(--dim);
+  color:var(--fg);font-family:'Share Tech Mono',monospace;
+  font-size:0.72em;padding:2px 6px;outline:none;min-width:0;
+  letter-spacing:0.04em;
+}
+.dest-input::placeholder{color:var(--fg3)}
+.dest-input:focus{border-color:var(--fg2)}
+.dest-btn,.dest-clear{
+  background:transparent;border:1px solid var(--dim);
+  color:var(--fg2);font-family:'Share Tech Mono',monospace;
+  font-size:0.8em;padding:2px 7px;cursor:pointer;flex-shrink:0;
+}
+.dest-btn:hover{border-color:var(--fg);color:var(--acc)}
+.dest-clear:hover{border-color:var(--bad);color:var(--bad)}
+.dest-status{font-size:0.62em;color:var(--fg3);min-height:1em}
+.dest-active{color:var(--warn)!important}
+
+/* MAP VIEW BUTTONS */
+.map-view-btns{
+  position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  z-index:1001;display:flex;gap:4px;
+}
+.map-vbtn{
+  background:rgba(0,0,0,0.82);border:1px solid var(--dim);
+  color:var(--fg3);font-family:'Share Tech Mono',monospace;
+  font-size:0.58em;padding:2px 7px;cursor:pointer;letter-spacing:0.1em;
+}
+.map-vbtn:hover{border-color:var(--fg2);color:var(--fg)}
+.map-vbtn.active{border-color:var(--warn);color:var(--warn)}
 
 /* MAP EXPAND BUTTON */
 .map-expand-btn{
@@ -218,14 +280,48 @@ body::after{
   background:#0d0d0d;color:var(--fg);border:1px solid var(--dim);
   font-family:'Share Tech Mono',monospace;font-size:0.8em;
 }
+/* OFFLINE BANNER */
+.offline-banner{
+  display:none;
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  z-index:10001;background:#1a1a14;border:1px solid var(--warn);
+  color:var(--warn);font-family:'Share Tech Mono',monospace;
+  font-size:0.65em;padding:3px 10px;letter-spacing:0.1em;
+  white-space:nowrap;pointer-events:none;
+}
+.offline-banner.show{display:block}
 </style>
 </head>
 <body>
 
 <!-- TOP BAR -->
+<div class="offline-banner" id="offline-banner">ОФЛАЙН · ДАННЫЕ ОТ <span id="offline-ts">--:--</span></div>
+
 <div class="topbar">
   <div class="sysid">OVR·SEA</div>
   <div class="clock" id="clock">--:--:--</div>
+</div>
+
+<!-- VESSEL + DESTINATION -->
+<div class="row-settings">
+  <div class="setting-group">
+    <div class="lbl">// СУДНО</div>
+    <div class="vessel-btns">
+      <button class="vbtn active" data-v="sup" onclick="setVessel(this)">SUP</button>
+      <button class="vbtn" data-v="kayak" onclick="setVessel(this)">БАЙДАРКА</button>
+      <button class="vbtn" data-v="motor" onclick="setVessel(this)">МОТОРНАЯ</button>
+      <button class="vbtn" data-v="sail" onclick="setVessel(this)">ПАРУСНАЯ</button>
+    </div>
+  </div>
+  <div class="setting-group">
+    <div class="lbl">// ТОЧКА ВЫХОДА</div>
+    <div class="dest-wrap">
+      <input id="dest-input" class="dest-input" type="text" placeholder="НАЗВАНИЕ ИЛИ LAT,LON" autocomplete="off"/>
+      <button class="dest-btn" onclick="setDestination()">→</button>
+      <button class="dest-clear" id="dest-clear" onclick="clearDestination()" style="display:none">✕</button>
+    </div>
+    <div class="dest-status" id="dest-status"></div>
+  </div>
 </div>
 
 <!-- ROW 1: NOW — pure data only -->
@@ -247,26 +343,24 @@ body::after{
     <div class="card-big"><span id="wx-temp">--</span><span class="card-unit">°C</span></div>
     <div class="card-sub">обл <span id="wx-cloud">--%</span> · влаж <span id="wx-humid">--%</span></div>
     <div class="card-sub2">осадки <span id="wx-precip">--</span> мм</div>
+    <div class="card-sub2"><span id="wx-pressure">---- гПа</span> <span id="wx-pressure-trend"></span></div>
   </div>
 </div>
 
 <!-- ROW 2: MOON + COMPASS — pure data -->
 <div class="row-meta">
-  <div>
+  <div class="card">
     <div class="lbl">// ЛУНА · ПРИЛИВ</div>
-    <div class="moon-wrap">
-      <pre id="moon-ascii">···</pre>
-      <div class="moon-info">
-        <div class="moon-name" id="moon-name">...</div>
-        <div class="mrow"><span class="k">ОСВЕЩ:</span><span class="v" id="moon-illum">--%</span></div>
-        <div class="mrow"><span class="k">ДЕНЬ:</span><span class="v" id="moon-age">--д</span></div>
-        <div class="mrow"><span class="k">СЛЕД:</span><span class="v" id="moon-next">--.-</span></div>
-        <div class="mrow"><span class="k">ПРИЛИВ:</span><span class="v" id="moon-tide">---</span></div>
-        <div class="mrow"><span class="k">ТИП:</span><span class="v" id="moon-tide-type">---</span></div>
-      </div>
+    <div class="moon-name" id="moon-name">...</div>
+    <div class="moon-cols">
+      <div class="mrow"><span class="k">ОСВЕЩ</span><span class="v" id="moon-illum">--%</span></div>
+      <div class="mrow"><span class="k">ПРИЛИВ</span><span class="v" id="moon-tide">---</span></div>
+      <div class="mrow"><span class="k">ДЕНЬ</span><span class="v" id="moon-age">--д</span></div>
+      <div class="mrow"><span class="k">ТИП</span><span class="v" id="moon-tide-type">---</span></div>
+      <div class="mrow"><span class="k">СЛЕД.ФАЗА</span><span class="v" id="moon-next">--.-</span></div>
     </div>
   </div>
-  <div>
+  <div class="card">
     <div class="lbl">// КОМПАС</div>
     <div class="compass-outer">
       <div class="compass-grid">
@@ -283,42 +377,54 @@ body::after{
   </div>
 </div>
 
-<!-- ROW 3: ИТОГО — aggregated verdict -->
-<div class="row-итого">
-  <div class="lbl">// ИТОГО · ВЫХОД НА ВОДУ</div>
-  <div class="итого-main">
-    <div class="итого-verdict go" id="итого-verdict">---</div>
+<!-- ROW 3: ОКНО + ИТОГО side by side -->
+<div class="row-combined">
+  <!-- left: hourly chart -->
+  <div class="combined-chart card">
+    <div class="lbl">// ОКНО СЕГОДНЯ</div>
+    <div id="hourly-chart" class="hourly-chart"></div>
   </div>
-  <div class="итого-factors">
-    <div class="factor">
-      <span class="factor-icon">~</span>
-      <span class="factor-label">ВЕТЕР</span>
-      <span class="factor-val" id="f-wind">--</span>
-      <span class="factor-verdict fv-neutral" id="f-wind-v">---</span>
-    </div>
-    <div class="factor">
-      <span class="factor-icon">^</span>
-      <span class="factor-label">ВОЛНЫ</span>
-      <span class="factor-val" id="f-wave">--</span>
-      <span class="factor-verdict fv-neutral" id="f-wave-v">---</span>
-    </div>
-    <div class="factor">
-      <span class="factor-icon">:</span>
-      <span class="factor-label">ПРИЛИВ</span>
-      <span class="factor-val" id="f-tide">--</span>
-      <span class="factor-verdict fv-neutral" id="f-tide-v">---</span>
-    </div>
-    <div class="factor">
-      <span class="factor-icon">*</span>
-      <span class="factor-label">ПРИМЕТА</span>
-      <span class="factor-val" id="f-omen">--</span>
-      <span class="factor-verdict fv-neutral" id="f-omen-v">---</span>
-    </div>
-    <div class="factor">
-      <span class="factor-icon">)</span>
-      <span class="factor-label">ЛУНА</span>
-      <span class="factor-val" id="f-moon">--</span>
-      <span class="factor-verdict fv-neutral" id="f-moon-v">---</span>
+  <!-- right: итого -->
+  <div class="combined-итого card" style="background:var(--dim2)">
+    <div class="lbl">// ИТОГО · ВЫХОД</div>
+    <div class="итого-verdict go" id="итого-verdict" style="font-size:1.1em;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--dim)">---</div>
+    <div class="итого-factors">
+      <div class="factor">
+        <span class="factor-icon">~</span>
+        <span class="factor-label">ВЕТЕР</span>
+        <span class="factor-val" id="f-wind">--</span>
+        <span class="factor-verdict fv-neutral" id="f-wind-v">---</span>
+      </div>
+      <div class="factor">
+        <span class="factor-icon">^</span>
+        <span class="factor-label">ВОЛНЫ</span>
+        <span class="factor-val" id="f-wave">--</span>
+        <span class="factor-verdict fv-neutral" id="f-wave-v">---</span>
+      </div>
+      <div class="factor">
+        <span class="factor-icon">:</span>
+        <span class="factor-label">ПРИЛИВ</span>
+        <span class="factor-val" id="f-tide">--</span>
+        <span class="factor-verdict fv-neutral" id="f-tide-v">---</span>
+      </div>
+      <div class="factor">
+        <span class="factor-icon">*</span>
+        <span class="factor-label">ПРИМЕТА</span>
+        <span class="factor-val" id="f-omen">--</span>
+        <span class="factor-verdict fv-neutral" id="f-omen-v">---</span>
+      </div>
+      <div class="factor">
+        <span class="factor-icon">)</span>
+        <span class="factor-label">ЛУНА</span>
+        <span class="factor-val" id="f-moon">--</span>
+        <span class="factor-verdict fv-neutral" id="f-moon-v">---</span>
+      </div>
+      <div class="factor">
+        <span class="factor-icon">↕</span>
+        <span class="factor-label">ДАВЛ</span>
+        <span class="factor-val" id="f-pressure">--</span>
+        <span class="factor-verdict fv-neutral" id="f-pressure-v">---</span>
+      </div>
     </div>
   </div>
 </div>
@@ -333,7 +439,12 @@ body::after{
 
 <!-- ROW 5: MAP -->
 <div class="row-map">
-  <div class="map-label">OPENSEA · МОРСКАЯ КАРТА</div>
+  <div class="map-label" id="map-label">OPENSEA · МОРСКАЯ КАРТА</div>
+  <div class="map-view-btns">
+    <button class="map-vbtn active" id="mvbtn-me" onclick="mapViewMe()">[ Я ]</button>
+    <button class="map-vbtn" id="mvbtn-dest" onclick="mapViewDest()" style="display:none">[ ВЫХОД ]</button>
+    <button class="map-vbtn" id="mvbtn-marinas" onclick="toggleMarinas()">[ МАРИНЫ ]</button>
+  </div>
   <button class="map-expand-btn" onclick="openFullscreen('sea')">[ РАЗВЕРНУТЬ ]</button>
   <div id="map"></div>
 </div>
@@ -377,7 +488,7 @@ setInterval(tick,1000);tick();
 function setSt(m){document.getElementById('statusline').innerHTML=m+'<span class="cursor"></span>';}
 
 /* ── MAP ── */
-let map,uMarker;
+let map,uMarker,destMarker,marinaMarkers=[],marinasShown=false;
 function initMap(lat,lon){
   if(map){map.setView([lat,lon],13);return;}
   map=L.map('map',{zoomControl:true,attributionControl:false}).setView([lat,lon],13);
@@ -389,6 +500,84 @@ function initMap(lat,lon){
 function updateMap(lat,lon){
   if(!map){initMap(lat,lon);return;}
   uMarker.setLatLng([lat,lon]);
+}
+
+/* map view toggles */
+function mapViewMe(){
+  if(!map||!uLat)return;
+  map.setView([uLat,uLon],13);
+  document.getElementById('mvbtn-me').classList.add('active');
+  document.getElementById('mvbtn-dest').classList.remove('active');
+}
+function mapViewDest(){
+  if(!map||!destLat)return;
+  map.setView([destLat,destLon],13);
+  document.getElementById('mvbtn-dest').classList.add('active');
+  document.getElementById('mvbtn-me').classList.remove('active');
+}
+
+/* marina search via Overpass */
+async function toggleMarinas(){
+  const btn=document.getElementById('mvbtn-marinas');
+  if(marinasShown){
+    marinaMarkers.forEach(m=>m.remove());
+    marinaMarkers=[];
+    marinasShown=false;
+    btn.classList.remove('active');
+    setSt('МАРИНЫ СКРЫТЫ');
+    return;
+  }
+  if(!map)return;
+  const center=map.getCenter();
+  btn.textContent='[ ... ]';
+  try{
+    const bbox=map.getBounds();
+    const s=bbox.getSouth().toFixed(4),w=bbox.getWest().toFixed(4);
+    const n=bbox.getNorth().toFixed(4),e=bbox.getEast().toFixed(4);
+    const query=`[out:json][timeout:10];
+(
+  node["leisure"="marina"](${s},${w},${n},${e});
+  node["seamark:type"="harbour"](${s},${w},${n},${e});
+  node["harbour"](${s},${w},${n},${e});
+  node["amenity"="boat_rental"](${s},${w},${n},${e});
+  node["seamark:type"="anchorage"](${s},${w},${n},${e});
+);out body;`;
+    const r=await fetch('https://overpass-api.de/api/interpreter',{
+      method:'POST',body:'data='+encodeURIComponent(query)
+    });
+    const d=await r.json();
+    const els=d.elements||[];
+    if(!els.length){setSt('МАРИНЫ: НЕ НАЙДЕНО В ЗОНЕ');btn.textContent='[ МАРИНЫ ]';return;}
+
+    els.forEach(el=>{
+      if(!el.lat||!el.lon)return;
+      const tags=el.tags||{};
+      const name=tags.name||tags['name:ru']||tags['seamark:name']||'МАРИНА';
+      const type=tags.leisure==='marina'?'⛵ МАРИНА':
+                  tags['seamark:type']==='anchorage'?'⚓ ЯКОРНАЯ':
+                  tags.amenity==='boat_rental'?'🚤 ПРОКАТ':'⛵ ПОРТ';
+      const berths=tags.capacity?'\nМЕСТ: '+tags.capacity:'';
+      const phone=tags.phone?'\nТЕЛ: '+tags.phone:'';
+      const fee=tags.fee==='yes'?'\nПЛАТНО':tags.fee==='no'?'\nБЕСПЛАТНО':'';
+
+      const icon=L.divIcon({
+        className:'',
+        html:'<div style="color:#d4b85a;font-size:14px;text-shadow:0 0 3px #000">⚓</div>',
+        iconSize:[16,16],iconAnchor:[8,8]
+      });
+      const m=L.marker([el.lat,el.lon],{icon})
+        .addTo(map)
+        .bindPopup('<b>'+type+'</b>\n'+name+berths+phone+fee);
+      marinaMarkers.push(m);
+    });
+
+    marinasShown=true;
+    btn.classList.add('active');
+    setSt('МАРИНЫ: '+els.length+' ОБЪЕКТОВ НАЙДЕНО');
+  }catch(ex){
+    setSt('МАРИНЫ: ОШИБКА OVERPASS');
+  }
+  btn.textContent='[ МАРИНЫ ]';
 }
 
 /* ── GEO ── */
@@ -413,7 +602,7 @@ function onPosErr(e){
 }
 
 /* ── STATE for итого ── */
-let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null};
+let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null,pressNow:null,pressDelta:null,hourlyWind:[],hourlyWave:[]};
 
 /* ── FETCH ALL ── */
 function fetchAll(){fetchNow();fetchForecast();}
@@ -421,10 +610,12 @@ function fetchAll(){fetchNow();fetchForecast();}
 /* ── NOW ── */
 async function fetchNow(){
   try{
-    const wu=`https://api.open-meteo.com/v1/forecast?latitude=${uLat}&longitude=${uLon}`+
+    const {lat:fLat,lon:fLon}=getCoords();
+    const wu=`https://api.open-meteo.com/v1/forecast?latitude=${fLat}&longitude=${fLon}`+
       `&current=temperature_2m,relative_humidity_2m,cloud_cover,precipitation,`+
-      `wind_speed_10m,wind_direction_10m,wind_gusts_10m`+
-      `&hourly=precipitation_probability&wind_speed_unit=ms&timezone=auto&forecast_hours=12`;
+      `wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure`+
+      `&hourly=precipitation_probability,surface_pressure,wind_speed_10m,wave_height`+
+      `&wind_speed_unit=ms&timezone=auto&forecast_hours=24`;
     const wd=await(await fetch(wu)).json();
     const wc=wd.current;
 
@@ -441,6 +632,26 @@ async function fetchNow(){
     document.getElementById('wx-humid').textContent=Math.round(wc.relative_humidity_2m)+'%';
     document.getElementById('wx-precip').textContent=wc.precipitation.toFixed(1);
 
+    // pressure + trend
+    const pressNow=wc.surface_pressure;
+    state.pressNow=pressNow;
+    if(wd.hourly&&wd.hourly.surface_pressure){
+      const pp=wd.hourly.surface_pressure;
+      // compare current hour vs 3h ago (index 0 = current hour)
+      const p3ago=pp[0];const pNow=pp[3]||pp[pp.length-1];
+      const delta=pNow-p3ago;
+      state.pressDelta=delta;
+    }
+    document.getElementById('wx-pressure').textContent=Math.round(pressNow)+' гПа';
+    renderPressureTrend();
+
+    // hourly chart data
+    if(wd.hourly){
+      state.hourlyWind=wd.hourly.wind_speed_10m||[];
+      state.hourlyWave=wd.hourly.wave_height||[];
+    }
+    renderHourlyChart();
+
     // omen code
     state.omenCode=calcOmenCode(
       wd.hourly, wc.cloud_cover, wc.relative_humidity_2m
@@ -448,7 +659,7 @@ async function fetchNow(){
 
     // marine
     try{
-      const mu=`https://marine-api.open-meteo.com/v1/marine?latitude=${uLat}&longitude=${uLon}`+
+      const mu=`https://marine-api.open-meteo.com/v1/marine?latitude=${fLat}&longitude=${fLon}`+
         `&current=wave_height,wave_period,wave_direction&timezone=auto`;
       const md=await(await fetch(mu)).json();
       if(md.current&&md.current.wave_height!=null){
@@ -467,6 +678,7 @@ async function fetchNow(){
     }catch(e){}
 
     renderИтого();
+    saveSnapshot();
     setSt('ДАННЫЕ ОБНОВЛЕНЫ · '+new Date().toTimeString().slice(0,5));
   }catch(e){setSt('ОШИБКА ДАННЫХ · '+e.message);}
 }
@@ -511,7 +723,6 @@ function initMoon(){
   document.getElementById('moon-illum').textContent=illum+'%';
   document.getElementById('moon-age').textContent=age.toFixed(1)+'д';
   document.getElementById('moon-next').textContent=nd.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
-  document.getElementById('moon-ascii').textContent=drawMoon(frac);
 
   const tideDir=frac<0.25?'↑ ПРИБЫВАЕТ':frac<0.5?'↓ УБЫВАЕТ':frac<0.75?'↑ ПРИБЫВАЕТ':'↓ УБЫВАЕТ';
   const nearSyzygy=(frac<0.1||frac>0.9||(frac>0.4&&frac<0.6));
@@ -540,16 +751,92 @@ function drawMoon(frac){
 }
 initMoon();
 
+/* ── PRESSURE TREND ── */
+function renderPressureTrend(){
+  const el=document.getElementById('wx-pressure-trend');
+  if(!el)return;
+  const d=state.pressDelta;
+  if(d==null){el.textContent='';return;}
+  if(d>2){el.textContent='↑↑ РАСТЁТ';el.className='ptup';}
+  else if(d>0.5){el.textContent='↑ РАСТЁТ';el.className='ptup';}
+  else if(d<-2){el.textContent='↓↓ ПАДАЕТ';el.className='ptdown';}
+  else if(d<-0.5){el.textContent='↓ ПАДАЕТ';el.className='ptdown';}
+  else{el.textContent='→ СТАБИЛЬНО';el.className='ptstable';}
+  // also update итого factor
+  state.pressOmen=d<-2?'bad':d<-0.5?'warn':'ok';
+}
+
+/* ── HOURLY CHART ── */
+function renderHourlyChart(){
+  const el=document.getElementById('hourly-chart');
+  if(!el)return;
+  const wind=state.hourlyWind;
+  const wave=state.hourlyWave;
+  if(!wind.length){el.textContent='НЕТ ДАННЫХ';return;}
+
+  const v=VESSELS[currentVessel];
+  const now=new Date();
+  const startH=now.getHours();
+  // show 12 hours from now
+  const hours=12;
+  const W=Math.min(hours, wind.length);
+
+  // build header: hour labels
+  let hdrLine='ЧАС  ';
+  let windLine='ВЕТЕР';
+  let waveLine='ВОЛНА';
+  let barLine ='     ';
+
+  for(let i=0;i<W;i++){
+    const h=(startH+i)%24;
+    const hStr=String(h).padStart(2,'0');
+    const ws=wind[i]!=null?wind[i]:0;
+    const wv=wave[i]!=null?wave[i]:null;
+
+    // wind bar char
+    let wChar,wCls;
+    if(ws<=v.windOk){wChar='▁';wCls='ok';}
+    else if(ws<=v.windWarn){wChar='▄';wCls='warn';}
+    else{wChar='█';wCls='bad';}
+
+    // wave bar char
+    let vChar='·';
+    if(wv!=null){
+      if(wv<=v.waveOk)vChar='▁';
+      else if(wv<=v.waveWarn)vChar='▄';
+      else vChar='█';
+    }
+
+    hdrLine +=' '+hStr;
+    windLine+=' '+ws.toFixed(0).padStart(2,' ');
+    waveLine+=' '+(wv!=null?wv.toFixed(1).padStart(2,' '):'N/A').slice(0,3).padStart(3,' ');
+    barLine +=' '+wChar+wChar;
+  }
+
+  // render as colored spans
+  el.innerHTML=[
+    '<span style="color:var(--fg3)">'+escH(hdrLine)+'</span>',
+    '<span style="color:var(--fg2)">'+escH(windLine)+'</span>',
+    '<span style="color:var(--fg3)">'+escH(waveLine)+'</span>',
+    '<span style="color:var(--fg3)">'+escH(barLine)+'</span>'
+  ].join('<br>');
+}
+
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
 /* ── RENDER ИТОГО ── */
 function renderИтого(){
   const {windMs,waveM,tideFrac,omenCode,moonFrac}=state;
 
+  // ── VESSEL thresholds
+  const v=VESSELS[currentVessel];
+
   // ── WIND factor
   let windLabel='',windCls='fv-neutral';
   if(windMs!=null){
-    if(windMs<5){windLabel='СПОКОЙНО';windCls='fv-ok';}
-    else if(windMs<10){windLabel='УМЕРЕННО';windCls='fv-warn';}
-    else if(windMs<15){windLabel='СИЛЬНЫЙ';windCls='fv-warn';}
+    if(windMs<=v.windOk){windLabel='СПОКОЙНО';windCls='fv-ok';}
+    else if(windMs<=v.windWarn){windLabel='УМЕРЕННО';windCls='fv-warn';}
+    else if(windMs<=v.windWarn*1.5){windLabel='СИЛЬНЫЙ';windCls='fv-warn';}
     else{windLabel='ОПАСНО';windCls='fv-bad';}
   }
   setText('f-wind',windMs!=null?windMs+' м/с':'--');
@@ -558,9 +845,9 @@ function renderИтого(){
   // ── WAVE factor
   let waveLabel='',waveCls='fv-neutral';
   if(waveM!=null){
-    if(waveM<0.5){waveLabel='ШТИЛЬ';waveCls='fv-ok';}
-    else if(waveM<1.0){waveLabel='СЛАБОЕ ВОЛНЕНИЕ';waveCls='fv-ok';}
-    else if(waveM<2.0){waveLabel='УМЕРЕННОЕ';waveCls='fv-warn';}
+    if(waveM<=v.waveOk){waveLabel='ШТИЛЬ';waveCls='fv-ok';}
+    else if(waveM<=v.waveWarn){waveLabel='СЛАБОЕ ВОЛНЕНИЕ';waveCls='fv-ok';}
+    else if(waveM<=v.waveWarn*1.8){waveLabel='УМЕРЕННОЕ';waveCls='fv-warn';}
     else{waveLabel='СИЛЬНОЕ ВОЛНЕНИЕ';waveCls='fv-bad';}
   } else {
     waveLabel='НЕТ МОРСКИХ ДАННЫХ';waveCls='fv-neutral';
@@ -613,17 +900,24 @@ function renderИтого(){
   }
 
   // ── OVERALL VERDICT
-  const bad=(windMs!=null&&windMs>=15)||(waveM!=null&&waveM>=2)||omenCode==='red-morning';
-  const warn=(windMs!=null&&windMs>=10)||(waveM!=null&&waveM>=1)||omenCode==='rain-likely';
+  const vv=VESSELS[currentVessel];
+  const pressIsBad=state.pressDelta!=null&&state.pressDelta<-2;
+  const pressIsWarn=state.pressDelta!=null&&state.pressDelta<-0.5;
+  const bad=(windMs!=null&&windMs>vv.windWarn*1.5)||(waveM!=null&&waveM>vv.waveWarn*1.8)||omenCode==='red-morning'||pressIsBad;
+  const warn=(windMs!=null&&windMs>vv.windOk)||(waveM!=null&&waveM>vv.waveOk)||omenCode==='rain-likely'||pressIsWarn;
   const vel=document.getElementById('итого-verdict');
   if(bad){
     vel.textContent='НЕ ВЫХОДИТЬ';vel.className='итого-verdict nogo';
+    checkVibration(3);
   } else if(warn){
     vel.textContent='ВЫХОД С ОСТОРОЖНОСТЬЮ';vel.className='итого-verdict caution';
+    checkVibration(2);
   } else if(windMs!=null){
     vel.textContent='ВЫХОД РАЗРЕШЁН';vel.className='итого-verdict go';
+    checkVibration(1);
   } else {
     vel.textContent='ОЖИДАНИЕ ДАННЫХ...';vel.className='итого-verdict fv-neutral';
+    checkVibration(0);
   }
 }
 
@@ -637,14 +931,15 @@ function setClass(id,text,cls){
 /* ── FORECAST ── */
 async function fetchForecast(){
   try{
-    const wu=`https://api.open-meteo.com/v1/forecast?latitude=${uLat}&longitude=${uLon}`+
+    const {lat:fLat2,lon:fLon2}=getCoords();
+    const wu=`https://api.open-meteo.com/v1/forecast?latitude=${fLat2}&longitude=${fLon2}`+
       `&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,`+
       `wind_direction_10m_dominant,precipitation_sum&wind_speed_unit=ms&timezone=auto&forecast_days=3`;
     const wd=await(await fetch(wu)).json();
     let md=null;
     try{
       md=await(await fetch(
-        `https://marine-api.open-meteo.com/v1/marine?latitude=${uLat}&longitude=${uLon}`+
+        `https://marine-api.open-meteo.com/v1/marine?latitude=${fLat2}&longitude=${fLon2}`+
         `&daily=wave_height_max&timezone=auto&forecast_days=3`
       )).json();
     }catch(e){}
@@ -726,6 +1021,103 @@ function degToDir8(d){
   return['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'][Math.round(d/45)%8];
 }
 
+/* ── VESSEL THRESHOLDS ── */
+const VESSELS={
+  sup:    {name:'SUP',          windOk:4,  windWarn:6,  waveOk:0.3, waveWarn:0.6},
+  kayak:  {name:'БАЙДАРКА',     windOk:6,  windWarn:10, waveOk:0.5, waveWarn:1.0},
+  motor:  {name:'МОТОРНАЯ',     windOk:10, windWarn:15, waveOk:1.0, waveWarn:2.0},
+  sail:   {name:'ПАРУСНАЯ',     windOk:12, windWarn:20, waveOk:1.5, waveWarn:3.0},
+};
+let currentVessel='sup';
+
+function setVessel(btn){
+  document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentVessel=btn.dataset.v;
+  renderИтого();
+  renderHourlyChart();
+}
+
+/* ── DESTINATION ── */
+let destLat=null, destLon=null;
+
+async function setDestination(){
+  const raw=document.getElementById('dest-input').value.trim();
+  if(!raw)return;
+  const status=document.getElementById('dest-status');
+  status.textContent='ПОИСК...';status.className='dest-status';
+
+  // try lat,lon format first
+  const coords=raw.match(/^(-?[\d.]+)[,\s]+(-?[\d.]+)$/);
+  if(coords){
+    destLat=parseFloat(coords[1]);
+    destLon=parseFloat(coords[2]);
+    applyDestination(raw);
+    return;
+  }
+
+  // geocode via Nominatim
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(raw)}&format=json&limit=1`,
+      {headers:{'Accept-Language':'ru'}});
+    const d=await r.json();
+    if(!d.length){status.textContent='МЕСТО НЕ НАЙДЕНО';return;}
+    destLat=parseFloat(d[0].lat);
+    destLon=parseFloat(d[0].lon);
+    applyDestination(d[0].display_name.split(',')[0]);
+  }catch(e){status.textContent='ОШИБКА ПОИСКА';}
+}
+
+function applyDestination(name){
+  const status=document.getElementById('dest-status');
+  const shortName=name.length>22?name.slice(0,22)+'…':name;
+  status.textContent='→ '+shortName;
+  status.className='dest-status dest-active';
+  document.getElementById('dest-clear').style.display='inline-block';
+  document.getElementById('mvbtn-dest').style.display='inline-block';
+
+  // place marker on mini-map
+  if(map){
+    if(destMarker)destMarker.remove();
+    destMarker=L.circleMarker([destLat,destLon],{
+      radius:7,color:'#d4b85a',fillColor:'#d4b85a',fillOpacity:0.9,weight:2
+    }).addTo(map).bindPopup('<b>⚓ ТОЧКА ВЫХОДА</b><br>'+shortName);
+    map.setView([destLat,destLon],12);
+    document.getElementById('mvbtn-dest').classList.add('active');
+    document.getElementById('mvbtn-me').classList.remove('active');
+  }
+  // place marker on fullscreen map too if open
+  if(fsMap){
+    fsMap.setView([destLat,destLon],13);
+    L.circleMarker([destLat,destLon],{radius:7,color:'#d4b85a',fillColor:'#d4b85a',fillOpacity:0.9,weight:2})
+     .addTo(fsMap).bindPopup('<b>⚓ ТОЧКА ВЫХОДА</b><br>'+shortName);
+  }
+  fetchAll();
+  setSt('ТОЧКА ВЫХОДА: '+shortName);
+}
+
+function var_warn(){return'#d4b85a';}
+
+function clearDestination(){
+  destLat=null;destLon=null;
+  document.getElementById('dest-input').value='';
+  document.getElementById('dest-status').textContent='';
+  document.getElementById('dest-status').className='dest-status';
+  document.getElementById('dest-clear').style.display='none';
+  document.getElementById('mvbtn-dest').style.display='none';
+  document.getElementById('mvbtn-dest').classList.remove('active');
+  document.getElementById('mvbtn-me').classList.add('active');
+  if(destMarker){destMarker.remove();destMarker=null;}
+  if(map&&uLat)map.setView([uLat,uLon],13);
+  fetchAll();
+  setSt('ТОЧКА ВЫХОДА СБРОШЕНА · ДАННЫЕ ПО ТЕКУЩЕЙ ПОЗИЦИИ');
+}
+
+// Override coords for API calls — use dest if set
+function getCoords(){
+  return{lat:destLat||uLat,lon:destLon||uLon};
+}
+
 /* ── INIT ── */
 initGeo();
 setInterval(()=>{if(uLat)fetchAll();},600000);
@@ -750,7 +1142,15 @@ function openFullscreen(tab){
     }
   }
   // force leaflet to recalc size after display
-  setTimeout(()=>{if(fsMap)fsMap.invalidateSize();},120);
+  setTimeout(()=>{
+    if(fsMap)fsMap.invalidateSize();
+    // mirror dest marker to fullscreen if set
+    if(destLat&&destLon){
+      L.circleMarker([destLat,destLon],{
+        radius:7,color:'#d4b85a',fillColor:'#d4b85a',fillOpacity:0.9,weight:2
+      }).addTo(fsMap).bindPopup('<b>⚓ ТОЧКА ВЫХОДА</b>');
+    }
+  },120);
 }
 
 function closeFullscreen(){
@@ -791,6 +1191,117 @@ function switchTab(tab){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closeFullscreen();
 });
+
+/* ── SERVICE WORKER ── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('OVR SW registered', reg.scope);
+      })
+      .catch(err => console.warn('SW reg failed', err));
+  });
+}
+
+/* ── OFFLINE DETECTION ── */
+function updateOnlineStatus(){
+  const banner = document.getElementById('offline-banner');
+  if(!navigator.onLine){
+    banner.classList.add('show');
+    loadSnapshot();
+  } else {
+    banner.classList.remove('show');
+  }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+/* ── SNAPSHOT SAVE ── */
+function saveSnapshot(){
+  if(!navigator.serviceWorker.controller) return;
+  const payload = {
+    ts: new Date().toTimeString().slice(0,5),
+    windSpd: document.getElementById('wind-spd').textContent,
+    windDir: document.getElementById('wind-dir').textContent,
+    windGust: document.getElementById('wind-gust').textContent,
+    waveH: document.getElementById('wave-h').textContent,
+    waveP: document.getElementById('wave-p').textContent,
+    waveDirTxt: document.getElementById('wave-dir-txt').textContent,
+    wxTemp: document.getElementById('wx-temp').textContent,
+    wxCloud: document.getElementById('wx-cloud').textContent,
+    wxHumid: document.getElementById('wx-humid').textContent,
+    wxPrecip: document.getElementById('wx-precip').textContent,
+    wxPressure: document.getElementById('wx-pressure').textContent,
+    verdict: document.getElementById('итого-verdict').textContent,
+    verdictCls: document.getElementById('итого-verdict').className,
+    moonName: document.getElementById('moon-name').textContent,
+    coordLat: document.getElementById('c-lat').textContent,
+    coordLon: document.getElementById('c-lon').textContent,
+  };
+  navigator.serviceWorker.controller.postMessage({type:'SAVE_SNAPSHOT', payload});
+  // also localStorage fallback
+  try{ localStorage.setItem('ovr_snapshot', JSON.stringify(payload)); }catch(e){}
+}
+
+/* ── SNAPSHOT LOAD (offline fallback) ── */
+async function loadSnapshot(){
+  let payload = null;
+  // try cache first
+  try{
+    const cache = await caches.open('ovr-sea-v1');
+    const res = await cache.match('__snapshot__');
+    if(res) payload = await res.json();
+  }catch(e){}
+  // fallback to localStorage
+  if(!payload){
+    try{
+      const raw = localStorage.getItem('ovr_snapshot');
+      if(raw) payload = JSON.parse(raw);
+    }catch(e){}
+  }
+  if(!payload) return;
+  document.getElementById('offline-ts').textContent = payload.ts || '--:--';
+  const fields = [
+    ['wind-spd', payload.windSpd],
+    ['wind-dir', payload.windDir],
+    ['wind-gust', payload.windGust],
+    ['wave-h', payload.waveH],
+    ['wave-p', payload.waveP],
+    ['wave-dir-txt', payload.waveDirTxt],
+    ['wx-temp', payload.wxTemp],
+    ['wx-cloud', payload.wxCloud],
+    ['wx-humid', payload.wxHumid],
+    ['wx-precip', payload.wxPrecip],
+    ['wx-pressure', payload.wxPressure],
+    ['moon-name', payload.moonName],
+    ['c-lat', payload.coordLat],
+    ['c-lon', payload.coordLon],
+  ];
+  fields.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if(el && val != null) el.textContent = val;
+  });
+  const vEl = document.getElementById('итого-verdict');
+  if(vEl && payload.verdict){
+    vEl.textContent = payload.verdict;
+    if(payload.verdictCls) vEl.className = payload.verdictCls;
+  }
+  setSt('ОФЛАЙН · ПОСЛЕДНИЕ ДАННЫЕ ОТ ' + (payload.ts||'--:--'));
+}
+
+/* ── VIBRATION on verdict change ── */
+let lastVerdictLevel = 0; // 0=unknown 1=ok 2=caution 3=nogo
+
+function checkVibration(newLevel){
+  if(lastVerdictLevel > 0 && newLevel > lastVerdictLevel){
+    if(navigator.vibrate){
+      if(newLevel === 3) navigator.vibrate([300,100,300,100,300]); // nogo — triple
+      else               navigator.vibrate([200,80,200]);           // caution — double
+    }
+  }
+  lastVerdictLevel = newLevel;
+}
 </script>
 </body>
 </html>
