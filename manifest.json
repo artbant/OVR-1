@@ -2,7 +2,7 @@
   "name": "OVR·SEA",
   "short_name": "OVR·SEA",
   "description": "Морской дашборд — ветер, волны, выход на воду",
-  "start_url": "./ovr.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",

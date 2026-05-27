@@ -1,7 +1,7 @@
 const CACHE = 'ovr-sea-v1';
 const STATIC = [
   './',
-  './ovr.html',
+  './index.html',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
