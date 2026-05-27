@@ -301,6 +301,18 @@ body::after{
   background:#0d0d0d;color:var(--fg);border:1px solid var(--dim);
   font-family:'Share Tech Mono',monospace;font-size:0.8em;
 }
+/* SUN ROW */
+.row-sun{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.sun-row{display:flex;align-items:center;gap:6px;margin-top:3px}
+.sun-item{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.sun-icon{font-size:1em;color:var(--warn);line-height:1}
+.sun-label{font-size:0.55em;color:var(--fg3);letter-spacing:0.1em}
+.sun-time{font-size:0.9em;color:var(--fg);letter-spacing:0.05em}
+.sun-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.sun-bar{width:100%;height:5px;background:var(--dim);position:relative}
+.sun-fill{height:100%;background:var(--warn);transition:width 1s}
+.sun-remain{font-size:0.6em;color:var(--fg3);text-align:center}
+
 /* OFFLINE BANNER */
 .offline-banner{
   display:none;
@@ -389,6 +401,36 @@ body::after{
     <div class="card-sub">обл <span id="wx-cloud">--%</span> · влаж <span id="wx-humid">--%</span></div>
     <div class="card-sub2">осадки <span id="wx-precip">--</span> мм</div>
     <div class="card-sub2"><span id="wx-pressure">---- гПа</span> <span id="wx-pressure-trend"></span></div>
+    <div class="card-sub2">видим <span id="wx-vis">-- км</span></div>
+  </div>
+</div>
+
+<!-- ROW 1b: SUN + WATER -->
+<div class="row-sun">
+  <div class="card">
+    <div class="lbl">// СВЕТОВОЙ ДЕНЬ</div>
+    <div class="sun-row">
+      <div class="sun-item">
+        <div class="sun-icon">↑</div>
+        <div class="sun-label">ВОСХОД</div>
+        <div class="sun-time" id="sun-rise">--:--</div>
+      </div>
+      <div class="sun-bar-wrap">
+        <div class="sun-bar"><div class="sun-fill" id="sun-fill" style="width:0%"></div></div>
+        <div class="sun-remain" id="sun-remain">-- ч до заката</div>
+      </div>
+      <div class="sun-item">
+        <div class="sun-icon">↓</div>
+        <div class="sun-label">ЗАКАТ</div>
+        <div class="sun-time" id="sun-set">--:--</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">// ВОДА</div>
+    <div class="card-big"><span id="water-temp">--</span><span class="card-unit">°C</span></div>
+    <div class="card-sub" id="water-safety">---</div>
+    <div class="card-sub2" id="water-survival">---</div>
   </div>
 </div>
 
@@ -647,6 +689,7 @@ function onPos(p){
   document.getElementById('c-lat').textContent=uLat.toFixed(4);
   document.getElementById('c-lon').textContent=uLon.toFixed(4);
   updateMap(uLat,uLon);
+  renderSun(uLat,uLon);
   setSt('ГЕО ОК · '+uLat.toFixed(3)+'/'+uLon.toFixed(3));
   fetchAll();
 }
@@ -662,13 +705,67 @@ let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null,pres
 /* ── FETCH ALL ── */
 function fetchAll(){fetchNow();fetchForecast();}
 
+
+/* ── SUN RISE/SET (Meeus algorithm) ── */
+function calcSunTimes(lat,lon){
+  const now=new Date();
+  const JD=Math.floor(now/86400000)+2440587.5;
+  const n=JD-2451545.0;
+  const L=(280.46+0.9856474*n)%360;
+  const g=((357.528+0.9856003*n)%360)*Math.PI/180;
+  const lam=(L+1.915*Math.sin(g)+0.02*Math.sin(2*g))*Math.PI/180;
+  const eps=23.439*Math.PI/180;
+  const decl=Math.asin(Math.sin(eps)*Math.sin(lam));
+  const latR=lat*Math.PI/180;
+  const cosH=( Math.sin(-0.8333*Math.PI/180)-Math.sin(latR)*Math.sin(decl) )
+              / (Math.cos(latR)*Math.cos(decl));
+  if(Math.abs(cosH)>1) return null; // midnight sun or polar night
+  const H=Math.acos(cosH)*180/Math.PI;
+  const JDrise=2451545.0+(6-H/15-lon/15)/24;
+  const JDset =2451545.0+(6+H/15-lon/15)/24;
+  const toTime=jd=>{
+    const d=new Date((jd-2440587.5)*86400000);
+    return d.toTimeString().slice(0,5);
+  };
+  const riseMs=(JDrise-2440587.5)*86400000;
+  const setMs =(JDset -2440587.5)*86400000;
+  return{rise:toTime(JDrise),set:toTime(JDset),riseMs,setMs};
+}
+
+function renderSun(lat,lon){
+  const sun=calcSunTimes(lat,lon);
+  if(!sun){
+    document.getElementById('sun-rise').textContent='--:--';
+    document.getElementById('sun-set').textContent='--:--';
+    document.getElementById('sun-remain').textContent='ПОЛЯРНЫЙ ДЕНЬ/НОЧЬ';
+    return;
+  }
+  document.getElementById('sun-rise').textContent=sun.rise;
+  document.getElementById('sun-set').textContent=sun.set;
+  const now=Date.now();
+  const dayLen=sun.setMs-sun.riseMs;
+  const elapsed=now-sun.riseMs;
+  const pct=Math.min(100,Math.max(0,(elapsed/dayLen)*100));
+  document.getElementById('sun-fill').style.width=pct+'%';
+  const remainMs=Math.max(0,sun.setMs-now);
+  const remainH=Math.floor(remainMs/3600000);
+  const remainM=Math.floor((remainMs%3600000)/60000);
+  if(now<sun.riseMs){
+    document.getElementById('sun-remain').textContent='до восхода: '+Math.floor((sun.riseMs-now)/3600000)+'ч '+Math.floor(((sun.riseMs-now)%3600000)/60000)+'мин';
+  } else if(now>sun.setMs){
+    document.getElementById('sun-remain').textContent='ЗАКАТ ПРОШЁЛ';
+  } else {
+    document.getElementById('sun-remain').textContent='до заката: '+remainH+'ч '+remainM+'мин';
+  }
+}
+
 /* ── NOW ── */
 async function fetchNow(){
   try{
     const {lat:fLat,lon:fLon}=getCoords();
     const wu=`https://api.open-meteo.com/v1/forecast?latitude=${fLat}&longitude=${fLon}`+
       `&current=temperature_2m,relative_humidity_2m,cloud_cover,precipitation,`+
-      `wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure`+
+      `wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,visibility`+
       `&hourly=precipitation_probability,surface_pressure,wind_speed_10m,wave_height`+
       `&wind_speed_unit=ms&timezone=auto&forecast_hours=24`;
     const wd=await(await fetch(wu)).json();
@@ -686,6 +783,14 @@ async function fetchNow(){
     document.getElementById('wx-cloud').textContent=Math.round(wc.cloud_cover)+'%';
     document.getElementById('wx-humid').textContent=Math.round(wc.relative_humidity_2m)+'%';
     document.getElementById('wx-precip').textContent=wc.precipitation.toFixed(1);
+    if(wc.visibility!=null){
+      const visKm=(wc.visibility/1000).toFixed(1);
+      const visEl=document.getElementById('wx-vis');
+      if(visEl){
+        visEl.textContent=visKm+' км';
+        visEl.style.color=wc.visibility<1000?'var(--bad)':wc.visibility<5000?'var(--warn)':'var(--fg)';
+      }
+    }
 
     // pressure + trend
     const pressNow=wc.surface_pressure;
@@ -715,17 +820,37 @@ async function fetchNow(){
     // marine
     try{
       const mu=`https://marine-api.open-meteo.com/v1/marine?latitude=${fLat}&longitude=${fLon}`+
-        `&current=wave_height,wave_period,wave_direction&timezone=auto`;
+        `&current=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=auto`;
       const md=await(await fetch(mu)).json();
-      if(md.current&&md.current.wave_height!=null){
-        const wh=md.current.wave_height;
-        const wp=md.current.wave_period;
-        const wdM=md.current.wave_direction;
-        state.waveM=wh;
-        document.getElementById('wave-h').textContent=wh.toFixed(1);
-        document.getElementById('c-wave').textContent=wh.toFixed(1)+'м';
-        if(wp) document.getElementById('wave-p').textContent=Math.round(wp)+'с';
-        if(wdM!=null) document.getElementById('wave-dir-txt').textContent='напр: '+degToDir16(wdM);
+      if(md.current){
+        const mc=md.current;
+        if(mc.wave_height!=null){
+          state.waveM=mc.wave_height;
+          document.getElementById('wave-h').textContent=mc.wave_height.toFixed(1);
+          document.getElementById('c-wave').textContent=mc.wave_height.toFixed(1)+'м';
+        } else {
+          document.getElementById('wave-h').textContent='N/A';
+          document.getElementById('wave-dir-txt').textContent='не мор. зона';
+        }
+        if(mc.wave_period) document.getElementById('wave-p').textContent=Math.round(mc.wave_period)+'с';
+        if(mc.wave_direction!=null) document.getElementById('wave-dir-txt').textContent='напр: '+degToDir16(mc.wave_direction);
+        // water temperature
+        if(mc.sea_surface_temperature!=null){
+          const wt=Math.round(mc.sea_surface_temperature);
+          const wtEl=document.getElementById('water-temp');
+          const safeEl=document.getElementById('water-safety');
+          const survEl=document.getElementById('water-survival');
+          if(wtEl) wtEl.textContent=wt;
+          // hypothermia risk table
+          let safety,survival,safeClr;
+          if(wt>=20){safety='КОМФОРТНО';survival='РИСКА НЕТ';safeClr='var(--good)';}
+          else if(wt>=15){safety='ПРОХЛАДНО';survival='НЕСКОЛЬКО ЧАСОВ';safeClr='var(--fg)';}
+          else if(wt>=10){safety='ХОЛОДНО';survival='1–2 ЧАСА';safeClr='var(--warn)';}
+          else if(wt>=5){safety='ОЧЕНЬ ХОЛОДНО';survival='30–90 МИН';safeClr='var(--bad)';}
+          else{safety='ОПАСНО';survival='< 30 МИН';safeClr='var(--bad)';}
+          if(safeEl){safeEl.textContent=safety;safeEl.style.color=safeClr;}
+          if(survEl){survEl.textContent='выживаемость: '+survival;survEl.style.color=safeClr;}
+        }
       } else {
         document.getElementById('wave-h').textContent='N/A';
         document.getElementById('wave-dir-txt').textContent='не мор. зона';
@@ -1199,6 +1324,7 @@ try{
 }catch(e){}
 initGeo();
 setInterval(()=>{if(uLat)fetchAll();},600000);
+setInterval(()=>{if(uLat)renderSun(uLat,uLon);},60000);
 
 /* ── FULLSCREEN MAP ── */
 let fsMap=null, fsMapInited=false, currentTab='sea';
