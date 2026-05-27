@@ -61,6 +61,12 @@ body::after{
 .ss-k{font-size:0.58em;color:var(--fg3);letter-spacing:0.1em}
 .ss-v{font-size:0.92em;color:var(--fg);letter-spacing:0.03em}
 .ss-verdict{font-size:0.8em;letter-spacing:0.05em}
+.sticky-nav{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:0 8px;align-items:baseline;
+  margin-top:3px;padding-top:3px;
+  border-top:1px solid var(--dim);
+}
 
 /* SCROLLABLE CONTENT */
 .scroll-content{padding:6px 11px 12px;display:flex;flex-direction:column;gap:5px}
@@ -346,12 +352,31 @@ body::after{
       <span class="ss-v" id="ss-wave">-.- м</span>
     </div>
     <div class="ss-item">
-      <span class="ss-k">ТЕМП</span>
-      <span class="ss-v" id="ss-temp">--°C</span>
+      <span class="ss-k">СКОРОСТЬ</span>
+      <span class="ss-v" id="ss-speed">-- уз</span>
     </div>
     <div class="ss-item">
       <span class="ss-k">ИТОГО</span>
       <span class="ss-v ss-verdict go" id="ss-verdict">---</span>
+    </div>
+  </div>
+  <!-- nav row — only when dest is set -->
+  <div class="sticky-nav" id="sticky-nav" style="display:none">
+    <div class="ss-item">
+      <span class="ss-k">ДО ЦЕЛИ</span>
+      <span class="ss-v" id="ss-dist">-- км</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">КУРС</span>
+      <span class="ss-v" id="ss-bearing">---°</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ХОД</span>
+      <span class="ss-v" id="ss-eta">-- мин</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">КУРС GPS</span>
+      <span class="ss-v" id="ss-heading">---</span>
     </div>
   </div>
 </div>
@@ -690,6 +715,25 @@ function onPos(p){
   document.getElementById('c-lon').textContent=uLon.toFixed(4);
   updateMap(uLat,uLon);
   renderSun(uLat,uLon);
+
+  // GPS speed (m/s → knots) and heading
+  const spd=p.coords.speed;
+  const hdg=p.coords.heading;
+  if(spd!=null&&spd>=0){
+    const knots=(spd*1.94384).toFixed(1);
+    const kmh=(spd*3.6).toFixed(1);
+    const ssEl=document.getElementById('ss-speed');
+    if(ssEl) ssEl.textContent=knots+' уз';
+    // also store for ETA calc
+    state.gpsSpeedMs=spd;
+  }
+  if(hdg!=null&&!isNaN(hdg)){
+    const dirs=['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
+    const hdgEl=document.getElementById('ss-heading');
+    if(hdgEl) hdgEl.textContent=Math.round(hdg)+'° '+dirs[Math.round(hdg/45)%8];
+  }
+
+  updateNavStrip();
   setSt('ГЕО ОК · '+uLat.toFixed(3)+'/'+uLon.toFixed(3));
   fetchAll();
 }
@@ -700,11 +744,56 @@ function onPosErr(e){
 }
 
 /* ── STATE for итого ── */
-let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null,pressNow:null,pressDelta:null,hourlyWind:[],hourlyWave:[]};
+let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null,pressNow:null,pressDelta:null,hourlyWind:[],hourlyWave:[],gpsSpeedMs:null};
 
 /* ── FETCH ALL ── */
 function fetchAll(){fetchNow();fetchForecast();}
 
+
+/* ── NAV STRIP ── */
+function updateNavStrip(){
+  const navRow=document.getElementById('sticky-nav');
+  if(!navRow)return;
+  if(!destLat||!destLon||!uLat||!uLon){navRow.style.display='none';return;}
+  navRow.style.display='grid';
+
+  // distance
+  const dist=calcDist(uLat,uLon,destLat,destLon);
+  const distEl=document.getElementById('ss-dist');
+  if(distEl) distEl.textContent=dist<1?(dist*1000).toFixed(0)+' м':dist.toFixed(1)+' км';
+
+  // bearing
+  const bearing=calcBearing(uLat,uLon,destLat,destLon);
+  const dirs=['С','ССВ','СВ','ВСВ','В','ВЮВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЗЮЗ','З','ЗСЗ','СЗ','ССЗ'];
+  const bearEl=document.getElementById('ss-bearing');
+  if(bearEl) bearEl.textContent=Math.round(bearing)+'° '+dirs[Math.round(bearing/22.5)%16];
+
+  // ETA based on GPS speed or vessel default
+  const etaEl=document.getElementById('ss-eta');
+  if(etaEl){
+    const spd=state.gpsSpeedMs||null;
+    if(spd&&spd>0.5){
+      const secs=(dist*1000)/spd;
+      const mins=Math.round(secs/60);
+      etaEl.textContent=mins<60?mins+' мин':Math.floor(mins/60)+'ч '+mins%60+'м';
+    } else {
+      // fallback: typical vessel speed
+      const speeds={sup:3,kayak:4,motor:25,sail:12}; // km/h
+      const typSpd=(speeds[currentVessel]||10)/3.6;
+      const secs=(dist*1000)/typSpd;
+      const mins=Math.round(secs/60);
+      etaEl.textContent=(mins<60?mins+' мин':Math.floor(mins/60)+'ч '+mins%60+'м')+' ~';
+    }
+  }
+}
+
+function calcBearing(lat1,lon1,lat2,lon2){
+  const l1=lat1*Math.PI/180,l2=lat2*Math.PI/180;
+  const dl=(lon2-lon1)*Math.PI/180;
+  const x=Math.cos(l2)*Math.sin(dl);
+  const y=Math.cos(l1)*Math.sin(l2)-Math.sin(l1)*Math.cos(l2)*Math.cos(dl);
+  return((Math.atan2(x,y)*180/Math.PI)+360)%360;
+}
 
 /* ── SUN RISE/SET (Meeus algorithm) ── */
 function calcSunTimes(lat,lon){
@@ -952,6 +1041,7 @@ function updateStickySummary(){
         (v.className.includes('nogo')?'nogo':v.className.includes('caution')?'caution':'go');
     }
   }
+  updateNavStrip();
 }
 
 /* ── PRESSURE TREND ── */
@@ -1287,6 +1377,7 @@ function applyDestination(name){
      .addTo(fsMap).bindPopup('<b>⚓ ТОЧКА ВЫХОДА</b><br>'+shortName);
   }
   fetchAll();
+  updateNavStrip();
   setSt('ТОЧКА ВЫХОДА: '+shortName);
 }
 
@@ -1303,6 +1394,7 @@ function clearDestination(){
   document.getElementById('mvbtn-me').classList.add('active');
   if(destMarker){destMarker.remove();destMarker=null;}
   if(map&&uLat)map.setView([uLat,uLon],13);
+  updateNavStrip();
   fetchAll();
   setSt('ТОЧКА ВЫХОДА СБРОШЕНА · ДАННЫЕ ПО ТЕКУЩЕЙ ПОЗИЦИИ');
 }
