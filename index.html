@@ -2,738 +2,660 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>СКЯ-ОБС / SKY-OBS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>OVR·SEA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --fg:#f0f0e8;
+  --fg2:#c8c8be;
+  --fg3:#909088;
+  --acc:#ffffff;
+  --dim:#2e2e28;
+  --dim2:#1a1a16;
+  --warn:#d4b85a;
+  --good:#72cc72;
+  --bad:#cc6464;
+  --fs:clamp(12.5px,3.4vw,15px);
+}
+html,body{
+  height:100%;background:#000;color:var(--fg);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:var(--fs);line-height:1.45;overflow:hidden;
+}
+body{
+  display:grid;
+  grid-template-rows:auto auto auto auto auto 1fr auto auto;
+  height:100dvh;padding:9px 11px 7px;gap:5px;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);
+  pointer-events:none;z-index:9999;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* TOP BAR */
+.topbar{
+  display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--dim);padding-bottom:5px;
+}
+.sysid{font-size:1.15em;color:var(--acc);letter-spacing:0.12em}
+.clock{color:var(--fg2);font-size:1em}
 
-  :root {
-    --fg: #e8e8e0;
-    --fg2: #a0a098;
-    --fg3: #585850;
-    --acc: #ffffff;
-    --dim: #404038;
-  }
+/* SECTION LABEL */
+.lbl{font-size:0.7em;color:var(--fg2);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:3px}
 
-  html, body {
-    height: 100%;
-    background: #000;
-    color: var(--fg);
-    font-family: 'Share Tech Mono', 'Courier New', monospace;
-    font-size: clamp(11px, 2.8vw, 14px);
-    line-height: 1.4;
-    overflow: hidden;
-  }
+/* ROW NOW: 3 cards */
+.row-now{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.card{border:1px solid var(--dim);padding:6px 8px;display:flex;flex-direction:column;gap:2px}
+.card-big{font-size:1.85em;color:var(--acc);line-height:1;letter-spacing:0.02em}
+.card-unit{font-size:0.58em;color:var(--fg3);margin-left:1px}
+.card-sub{font-size:0.75em;color:var(--fg2)}
+.card-sub2{font-size:0.68em;color:var(--fg3)}
 
-  body {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    padding: 10px 12px 8px;
-    gap: 6px;
-    position: relative;
-  }
+/* ROW META: moon + compass */
+.row-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-  /* CRT scanlines overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.08) 2px,
-      rgba(0,0,0,0.08) 4px
-    );
-    pointer-events: none;
-    z-index: 999;
-  }
+/* moon */
+.moon-wrap{display:flex;gap:8px;align-items:flex-start}
+#moon-ascii{font-size:0.78em;line-height:1.2;color:var(--fg2);white-space:pre;flex-shrink:0}
+.moon-info{display:flex;flex-direction:column;gap:1px}
+.moon-name{font-size:0.88em;color:var(--acc);margin-bottom:2px}
+.mrow{display:flex;gap:4px;align-items:baseline}
+.mrow .k{font-size:0.65em;color:var(--fg3)}
+.mrow .v{font-size:0.78em;color:var(--fg)}
 
-  /* ── TOP BAR ── */
-  .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid var(--dim);
-    padding-bottom: 4px;
-    flex-shrink: 0;
-  }
+/* compass */
+.compass-outer{display:flex;flex-direction:column;align-items:center;gap:2px}
+.compass-grid{
+  display:grid;
+  grid-template-columns:1.8em 1.8em 1.8em;
+  grid-template-rows:1.5em 1.5em 1.5em;
+  font-size:0.92em;line-height:1;color:var(--fg2);
+}
+.compass-grid span{display:flex;align-items:center;justify-content:center}
+.cN{grid-column:2;grid-row:1;color:var(--fg)!important}
+.cW{grid-column:1;grid-row:2;color:var(--fg)!important}
+.cArr{grid-column:2;grid-row:2;color:var(--acc)!important;font-size:1.15em}
+.cE{grid-column:3;grid-row:2;color:var(--fg)!important}
+.cS{grid-column:2;grid-row:3;color:var(--fg)!important}
+.compass-hdg{font-size:1.3em;color:var(--acc);letter-spacing:0.1em}
+.compass-deg{font-size:0.7em;color:var(--fg3)}
+#compass-btn{
+  background:transparent;border:1px solid var(--dim);color:var(--fg2);
+  font-family:inherit;font-size:0.65em;padding:2px 5px;cursor:pointer;margin-top:2px;
+}
+#compass-btn:hover{border-color:var(--fg2);color:var(--fg)}
 
-  .sys-id {
-    font-size: 1.1em;
-    color: var(--acc);
-    letter-spacing: 0.1em;
-  }
+/* ROW FORECAST */
+.row-fc{border:1px solid var(--dim);padding:6px 8px}
+.fc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 8px;margin-top:3px}
+.fc-day-name{
+  font-size:0.72em;color:var(--fg2);letter-spacing:0.1em;
+  border-bottom:1px solid var(--dim);padding-bottom:2px;margin-bottom:3px;
+}
+.fc-row{display:flex;justify-content:space-between;align-items:baseline}
+.fc-k{font-size:0.62em;color:var(--fg3)}
+.fc-v{font-size:0.74em;color:var(--fg)}
+.fc-verdict{
+  font-size:0.62em;letter-spacing:0.06em;margin-top:3px;
+  border:1px solid currentColor;padding:0 3px;display:inline-block;
+}
+.go{color:var(--good)}.nogo{color:var(--bad)}.caution{color:var(--warn)}
 
-  .clock {
-    font-size: 0.95em;
-    color: var(--fg2);
-  }
+/* ── ИТОГО BLOCK ── */
+.row-итого{border:1px solid var(--dim);padding:7px 9px;background:var(--dim2)}
+.итого-main{
+  display:flex;align-items:baseline;gap:10px;
+  margin-bottom:5px;padding-bottom:5px;
+  border-bottom:1px solid var(--dim);
+}
+.итого-verdict{font-size:1.4em;letter-spacing:0.06em;line-height:1}
+.итого-factors{display:flex;flex-direction:column;gap:3px}
+.factor{display:flex;gap:6px;align-items:baseline;font-size:0.72em}
+.factor-icon{color:var(--fg3);min-width:1.2em}
+.factor-label{color:var(--fg3);min-width:7em}
+.factor-val{color:var(--fg2)}
+.factor-verdict{margin-left:auto;text-align:right}
+.fv-ok{color:var(--good)}.fv-warn{color:var(--warn)}.fv-bad{color:var(--bad)}.fv-neutral{color:var(--fg3)}
 
-  /* ── SECTION LABEL ── */
-  .sec-label {
-    font-size: 0.72em;
-    color: var(--fg3);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 1px;
-  }
+/* MAP */
+.row-map{position:relative;border:1px solid var(--dim);overflow:hidden;min-height:0}
+#map{width:100%;height:100%}
+.map-label{
+  position:absolute;top:6px;left:6px;z-index:1000;
+  font-family:'Share Tech Mono',monospace;font-size:0.6em;color:var(--fg2);
+  background:rgba(0,0,0,0.8);padding:2px 5px;letter-spacing:0.1em;pointer-events:none;
+}
+/* map legend */
+.map-legend{
+  position:absolute;bottom:6px;left:6px;z-index:1000;
+  background:rgba(0,0,0,0.82);padding:4px 7px;
+  font-family:'Share Tech Mono',monospace;font-size:0.55em;
+  color:var(--fg2);line-height:1.7;pointer-events:none;
+  border:1px solid var(--dim);
+}
+.map-legend div{display:flex;gap:5px;align-items:center}
+.map-legend .icon{color:var(--acc);min-width:1.2em}
 
-  /* ── MAIN GRID ── */
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto auto;
-    gap: 8px 14px;
-    flex: 1;
-    min-height: 0;
-  }
+/* COORDBAR */
+.coordbar{
+  display:flex;justify-content:space-between;
+  border-top:1px solid var(--dim);padding-top:3px;
+  font-size:0.65em;color:var(--fg3);
+}
+.coordbar span{color:var(--fg2)}
 
-  .block { min-width: 0; }
-  .block-wide { grid-column: 1 / -1; }
+/* STATUS */
+.statusline{font-size:0.62em;color:var(--fg3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cursor::after{content:'█';animation:blink 1.1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-  /* ── MOON BLOCK ── */
-  .moon-wrap {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  #moon-canvas {
-    flex-shrink: 0;
-    line-height: 1.2;
-    font-size: 0.85em;
-    color: var(--fg2);
-    white-space: pre;
-    letter-spacing: 0.05em;
-  }
-
-  .moon-data { flex: 1; min-width: 0; }
-
-  .moon-phase-name {
-    color: var(--acc);
-    font-size: 1em;
-    letter-spacing: 0.08em;
-    margin-bottom: 3px;
-  }
-
-  .kv { display: flex; justify-content: space-between; gap: 4px; }
-  .kv .k { color: var(--fg3); font-size: 0.78em; }
-  .kv .v { color: var(--fg); font-size: 0.85em; }
-
-  /* ── COMPASS ── */
-  #compass-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-
-  #compass-ascii {
-    white-space: pre;
-    font-size: 0.82em;
-    line-height: 1.25;
-    color: var(--fg2);
-    text-align: center;
-  }
-
-  #compass-heading {
-    font-size: 1.3em;
-    color: var(--acc);
-    letter-spacing: 0.1em;
-    text-align: center;
-  }
-
-  #compass-deg {
-    font-size: 0.78em;
-    color: var(--fg3);
-    text-align: center;
-  }
-
-  /* ── ALTITUDE ── */
-  .alt-big {
-    font-size: 2em;
-    color: var(--acc);
-    letter-spacing: 0.05em;
-    line-height: 1;
-  }
-
-  .alt-unit {
-    font-size: 0.8em;
-    color: var(--fg3);
-    margin-left: 2px;
-  }
-
-  .alt-bar {
-    margin-top: 4px;
-    height: 6px;
-    background: var(--dim);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .alt-fill {
-    height: 100%;
-    background: var(--fg2);
-    transition: width 1s;
-  }
-
-  .alt-ascii {
-    margin-top: 3px;
-    font-size: 0.7em;
-    color: var(--fg3);
-    white-space: pre;
-    overflow: hidden;
-  }
-
-  /* ── AURORA ── */
-  .kp-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
-
-  .kp-val {
-    font-size: 1.8em;
-    color: var(--acc);
-    line-height: 1;
-  }
-
-  .kp-bar-wrap {
-    flex: 1;
-  }
-
-  .kp-bar {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 2px;
-  }
-
-  .kp-seg {
-    flex: 1;
-    height: 10px;
-    background: var(--dim);
-    font-size: 0;
-  }
-
-  .kp-seg.on { background: var(--fg); }
-  .kp-seg.warn { background: var(--fg2); }
-
-  .aurora-status {
-    font-size: 0.78em;
-    color: var(--fg2);
-    letter-spacing: 0.1em;
-  }
-
-  .aurora-dots {
-    font-size: 0.7em;
-    color: var(--fg3);
-    white-space: pre;
-    margin-top: 2px;
-  }
-
-  /* ── PLANES ── */
-  .plane-list {
-    font-size: 0.78em;
-    line-height: 1.6;
-  }
-
-  .plane-row {
-    display: flex;
-    gap: 6px;
-    border-bottom: 1px dotted var(--dim);
-    padding: 1px 0;
-  }
-
-  .plane-call { color: var(--acc); min-width: 7ch; }
-  .plane-info { color: var(--fg2); flex: 1; }
-  .plane-alt-r { color: var(--fg3); text-align: right; min-width: 6ch; }
-
-  .plane-radar {
-    position: relative;
-    margin-top: 4px;
-    height: 52px;
-    overflow: hidden;
-  }
-
-  #radar-ascii {
-    white-space: pre;
-    font-size: 0.62em;
-    color: var(--fg3);
-    line-height: 1.15;
-    position: absolute;
-    top: 0; left: 0;
-  }
-
-  /* ── COORDS BAR ── */
-  .coords-bar {
-    display: flex;
-    justify-content: space-between;
-    border-top: 1px solid var(--dim);
-    padding-top: 4px;
-    flex-shrink: 0;
-    font-size: 0.72em;
-    color: var(--fg3);
-  }
-
-  .coords-bar span { color: var(--fg2); }
-
-  /* ── STATUS LINE ── */
-  .status-line {
-    font-size: 0.68em;
-    color: var(--fg3);
-    letter-spacing: 0.05em;
-    flex-shrink: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  /* blink cursor */
-  .cursor::after {
-    content: '█';
-    animation: blink 1.1s step-end infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-  .err { color: #555; }
-
-  /* permission button */
-  #compass-btn {
-    background: transparent;
-    border: 1px solid var(--dim);
-    color: var(--fg3);
-    font-family: inherit;
-    font-size: 0.72em;
-    padding: 2px 6px;
-    cursor: pointer;
-    letter-spacing: 0.08em;
-    margin-top: 3px;
-  }
-  #compass-btn:hover { border-color: var(--fg2); color: var(--fg); }
+/* LEAFLET DARK */
+.leaflet-container{background:#080808!important;font-family:'Share Tech Mono',monospace}
+.leaflet-tile{filter:invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.88)}
+.leaflet-control-zoom a{background:#111!important;color:var(--fg)!important;border-color:var(--dim)!important;font-family:inherit}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{
+  background:#0d0d0d;color:var(--fg);border:1px solid var(--dim);
+  font-family:'Share Tech Mono',monospace;font-size:0.8em;
+}
 </style>
 </head>
 <body>
 
 <!-- TOP BAR -->
-<div class="top-bar">
-  <div class="sys-id">СКЯ-ОБС_v2.1</div>
+<div class="topbar">
+  <div class="sysid">OVR·SEA</div>
   <div class="clock" id="clock">--:--:--</div>
 </div>
 
-<!-- MAIN GRID -->
-<div class="grid">
+<!-- ROW 1: NOW — pure data only -->
+<div class="row-now">
+  <div class="card">
+    <div class="lbl">// ВЕТЕР</div>
+    <div class="card-big"><span id="wind-spd">--</span><span class="card-unit">м/с</span></div>
+    <div class="card-sub" id="wind-dir">---</div>
+    <div class="card-sub2">порыв <span id="wind-gust">--</span> м/с</div>
+  </div>
+  <div class="card">
+    <div class="lbl">// ВОЛНЫ</div>
+    <div class="card-big"><span id="wave-h">-.-</span><span class="card-unit">м</span></div>
+    <div class="card-sub">период <span id="wave-p">--</span>с</div>
+    <div class="card-sub2" id="wave-dir-txt">напр: ---</div>
+  </div>
+  <div class="card">
+    <div class="lbl">// ПОГОДА</div>
+    <div class="card-big"><span id="wx-temp">--</span><span class="card-unit">°C</span></div>
+    <div class="card-sub">обл <span id="wx-cloud">--%</span> · влаж <span id="wx-humid">--%</span></div>
+    <div class="card-sub2">осадки <span id="wx-precip">--</span> мм</div>
+  </div>
+</div>
 
-  <!-- MOON -->
-  <div class="block block-wide">
-    <div class="sec-label">// ЛУНА</div>
+<!-- ROW 2: MOON + COMPASS — pure data -->
+<div class="row-meta">
+  <div>
+    <div class="lbl">// ЛУНА · ПРИЛИВ</div>
     <div class="moon-wrap">
-      <div id="moon-canvas">···</div>
-      <div class="moon-data">
-        <div class="moon-phase-name" id="moon-phase-name">ЗАГРУЗКА...</div>
-        <div class="kv"><span class="k">ОСВЕЩ</span><span class="v" id="moon-illum">--%</span></div>
-        <div class="kv"><span class="k">ДЕНЬ</span><span class="v" id="moon-age">-- д</span></div>
-        <div class="kv"><span class="k">СЛЕД.ФАЗ</span><span class="v" id="moon-next">--</span></div>
+      <pre id="moon-ascii">···</pre>
+      <div class="moon-info">
+        <div class="moon-name" id="moon-name">...</div>
+        <div class="mrow"><span class="k">ОСВЕЩ:</span><span class="v" id="moon-illum">--%</span></div>
+        <div class="mrow"><span class="k">ДЕНЬ:</span><span class="v" id="moon-age">--д</span></div>
+        <div class="mrow"><span class="k">СЛЕД:</span><span class="v" id="moon-next">--.-</span></div>
+        <div class="mrow"><span class="k">ПРИЛИВ:</span><span class="v" id="moon-tide">---</span></div>
+        <div class="mrow"><span class="k">ТИП:</span><span class="v" id="moon-tide-type">---</span></div>
       </div>
     </div>
   </div>
-
-  <!-- COMPASS -->
-  <div class="block">
-    <div class="sec-label">// КОМПАС</div>
-    <div id="compass-wrap">
-      <pre id="compass-ascii">  [N]
-W -+- E
-  [S]</pre>
-      <div id="compass-heading">---</div>
-      <div id="compass-deg">--- °</div>
-      <button id="compass-btn" onclick="requestCompass()">РАЗРЕШИТЬ</button>
-    </div>
-  </div>
-
-  <!-- ALTITUDE -->
-  <div class="block">
-    <div class="sec-label">// ВЫСОТА</div>
-    <div class="alt-big"><span id="alt-val">----</span><span class="alt-unit">м</span></div>
-    <div class="alt-bar"><div class="alt-fill" id="alt-fill" style="width:0%"></div></div>
-    <div class="alt-ascii" id="alt-ascii">................</div>
-    <div class="kv" style="margin-top:3px">
-      <span class="k">ТОЧН</span><span class="v" id="alt-acc">±-- м</span>
-    </div>
-    <div class="kv">
-      <span class="k">LAT/LON</span><span class="v" id="alt-coord">--.-- / --.--</span>
-    </div>
-  </div>
-
-  <!-- AURORA -->
-  <div class="block">
-    <div class="sec-label">// АВРОРА / KP</div>
-    <div class="kp-row">
-      <div class="kp-val" id="kp-val">-.-</div>
-      <div class="kp-bar-wrap">
-        <div class="kp-bar" id="kp-bar">
-          <div class="kp-seg" data-i="0"></div>
-          <div class="kp-seg" data-i="1"></div>
-          <div class="kp-seg" data-i="2"></div>
-          <div class="kp-seg" data-i="3"></div>
-          <div class="kp-seg" data-i="4"></div>
-          <div class="kp-seg" data-i="5"></div>
-          <div class="kp-seg" data-i="6"></div>
-          <div class="kp-seg" data-i="7"></div>
-          <div class="kp-seg" data-i="8"></div>
-        </div>
-        <div class="aurora-status" id="aurora-status">ОПРОС NOAA...</div>
+  <div>
+    <div class="lbl">// КОМПАС</div>
+    <div class="compass-outer">
+      <div class="compass-grid">
+        <span class="cN">N</span>
+        <span class="cW">W</span>
+        <span class="cArr" id="cArr">+</span>
+        <span class="cE">E</span>
+        <span class="cS">S</span>
       </div>
-    </div>
-    <div class="aurora-dots" id="aurora-dots">. . . . . . . . . . . .</div>
-  </div>
-
-  <!-- PLANES -->
-  <div class="block block-wide">
-    <div class="sec-label">// САМОЛЁТЫ НАД ГОЛОВОЙ</div>
-    <div class="plane-list" id="plane-list">
-      <div style="color:var(--fg3)">ОПРОС OPENSKY...</div>
-    </div>
-    <div class="plane-radar">
-      <pre id="radar-ascii"></pre>
+      <div class="compass-hdg" id="compass-hdg">---</div>
+      <div class="compass-deg" id="compass-deg">---°</div>
+      <button id="compass-btn" onclick="reqCompass()">[ РАЗРЕШИТЬ ]</button>
     </div>
   </div>
-
 </div>
 
-<!-- COORDS BAR -->
-<div class="coords-bar">
-  <div>LAT <span id="coord-lat">---.----</span></div>
-  <div>LON <span id="coord-lon">---.----</span></div>
-  <div>ALT <span id="coord-alt">--- M</span></div>
+<!-- ROW 3: ИТОГО — aggregated verdict -->
+<div class="row-итого">
+  <div class="lbl">// ИТОГО · ВЫХОД НА ВОДУ</div>
+  <div class="итого-main">
+    <div class="итого-verdict go" id="итого-verdict">---</div>
+  </div>
+  <div class="итого-factors">
+    <div class="factor">
+      <span class="factor-icon">~</span>
+      <span class="factor-label">ВЕТЕР</span>
+      <span class="factor-val" id="f-wind">--</span>
+      <span class="factor-verdict fv-neutral" id="f-wind-v">---</span>
+    </div>
+    <div class="factor">
+      <span class="factor-icon">^</span>
+      <span class="factor-label">ВОЛНЫ</span>
+      <span class="factor-val" id="f-wave">--</span>
+      <span class="factor-verdict fv-neutral" id="f-wave-v">---</span>
+    </div>
+    <div class="factor">
+      <span class="factor-icon">:</span>
+      <span class="factor-label">ПРИЛИВ</span>
+      <span class="factor-val" id="f-tide">--</span>
+      <span class="factor-verdict fv-neutral" id="f-tide-v">---</span>
+    </div>
+    <div class="factor">
+      <span class="factor-icon">*</span>
+      <span class="factor-label">ПРИМЕТА</span>
+      <span class="factor-val" id="f-omen">--</span>
+      <span class="factor-verdict fv-neutral" id="f-omen-v">---</span>
+    </div>
+    <div class="factor">
+      <span class="factor-icon">)</span>
+      <span class="factor-label">ЛУНА</span>
+      <span class="factor-val" id="f-moon">--</span>
+      <span class="factor-verdict fv-neutral" id="f-moon-v">---</span>
+    </div>
+  </div>
 </div>
 
-<!-- STATUS -->
-<div class="status-line" id="status-line">ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...<span class="cursor"></span></div>
+<!-- ROW 4: FORECAST -->
+<div class="row-fc">
+  <div class="lbl">// ПРОГНОЗ — 3 ДНЯ</div>
+  <div class="fc-grid" id="fc-grid">
+    <div><div class="fc-day-name">ЗАГРУЗКА...</div></div>
+  </div>
+</div>
+
+<!-- ROW 5: MAP -->
+<div class="row-map">
+  <div class="map-label">OPENSEA · МОРСКАЯ КАРТА</div>
+  <div class="map-legend">
+    <div><span class="icon">⚓</span>ЯКОРНАЯ СТОЯНКА</div>
+    <div><span class="icon">⛵</span>МАРИНА / ПОРТ</div>
+    <div><span class="icon">◆</span>БУЙ / ЗНАК</div>
+    <div><span class="icon">—</span>ФАРВАТЕР</div>
+    <div><span class="icon">·</span>МЕЛЬ / ГЛУБИНА</div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<!-- COORDBAR -->
+<div class="coordbar">
+  <div>LAT <span id="c-lat">---.----</span></div>
+  <div>LON <span id="c-lon">---.----</span></div>
+  <div>ВЕТЕР <span id="c-wind">-- м/с</span></div>
+  <div>ВОЛНА <span id="c-wave">-.-м</span></div>
+</div>
+<div class="statusline" id="statusline">ИНИЦИАЛИЗАЦИЯ...<span class="cursor"></span></div>
 
 <script>
-// ── CLOCK ──
-function updateClock() {
-  const n = new Date();
-  document.getElementById('clock').textContent =
-    n.toTimeString().slice(0,8);
-}
-setInterval(updateClock, 1000);
-updateClock();
+/* ── CLOCK ── */
+function tick(){document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8);}
+setInterval(tick,1000);tick();
+function setSt(m){document.getElementById('statusline').innerHTML=m+'<span class="cursor"></span>';}
 
-// ── STATUS ──
-function setStatus(msg) {
-  document.getElementById('status-line').innerHTML = msg + '<span class="cursor"></span>';
+/* ── MAP ── */
+let map,uMarker;
+function initMap(lat,lon){
+  if(map){map.setView([lat,lon],13);return;}
+  map=L.map('map',{zoomControl:true,attributionControl:false}).setView([lat,lon],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+  L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+  uMarker=L.circleMarker([lat,lon],{radius:6,color:'#fff',fillColor:'#fff',fillOpacity:1,weight:2})
+    .addTo(map).bindPopup('<b>ВЫ ЗДЕСЬ</b>');
+}
+function updateMap(lat,lon){
+  if(!map){initMap(lat,lon);return;}
+  uMarker.setLatLng([lat,lon]);
 }
 
-// ── MOON MATH ──
-function getMoonData() {
-  const now = new Date();
-  const known = new Date('2000-01-06T18:14:00Z');
-  const syno = 29.53058867;
-  const diff = (now - known) / 86400000;
-  let age = ((diff % syno) + syno) % syno;
-  const illum = Math.round((1 - Math.cos(2 * Math.PI * age / syno)) / 2 * 100);
-  const phases = [
-    [0.0, 'НОВОЛУНИЕ', '●'],
-    [0.125, 'МОЛОДОЙ СЕРП', '🌒'],
-    [0.25, 'ПЕРВАЯ ЧЕТВЕРТЬ', '◑'],
-    [0.375, 'ПРИБЫВАЮЩАЯ', '🌔'],
-    [0.5, 'ПОЛНОЛУНИЕ', '○'],
-    [0.625, 'УБЫВАЮЩАЯ', '🌖'],
-    [0.75, 'ПОСЛЕДНЯЯ ЧЕТВЕРТЬ', '◐'],
-    [0.875, 'СТАРЫЙ СЕРП', '🌘'],
-    [1.0, 'НОВОЛУНИЕ', '●'],
-  ];
-  const frac = age / syno;
-  let phaseName = phases[0][1];
-  for (let i = phases.length - 1; i >= 0; i--) {
-    if (frac >= phases[i][0] - 0.0625) { phaseName = phases[i][1]; break; }
+/* ── GEO ── */
+let uLat=null,uLon=null;
+function initGeo(){
+  if(!navigator.geolocation){setSt('ГЕОЛОК: НЕ ПОДДЕРЖИВАЕТСЯ');return;}
+  setSt('ЗАПРОС ГЕОЛОКАЦИИ...');
+  navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,maximumAge:20000});
+}
+function onPos(p){
+  uLat=p.coords.latitude;uLon=p.coords.longitude;
+  document.getElementById('c-lat').textContent=uLat.toFixed(4);
+  document.getElementById('c-lon').textContent=uLon.toFixed(4);
+  updateMap(uLat,uLon);
+  setSt('ГЕО ОК · '+uLat.toFixed(3)+'/'+uLon.toFixed(3));
+  fetchAll();
+}
+function onPosErr(e){
+  setSt('ГЕОЛОК ОШИБКА · '+e.message);
+  uLat=55.75;uLon=37.62;
+  initMap(uLat,uLon);fetchAll();
+}
+
+/* ── STATE for итого ── */
+let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null};
+
+/* ── FETCH ALL ── */
+function fetchAll(){fetchNow();fetchForecast();}
+
+/* ── NOW ── */
+async function fetchNow(){
+  try{
+    const wu=`https://api.open-meteo.com/v1/forecast?latitude=${uLat}&longitude=${uLon}`+
+      `&current=temperature_2m,relative_humidity_2m,cloud_cover,precipitation,`+
+      `wind_speed_10m,wind_direction_10m,wind_gusts_10m`+
+      `&hourly=precipitation_probability&wind_speed_unit=ms&timezone=auto&forecast_hours=12`;
+    const wd=await(await fetch(wu)).json();
+    const wc=wd.current;
+
+    const wspd=parseFloat(wc.wind_speed_10m.toFixed(1));
+    const wgust=wc.wind_gusts_10m.toFixed(1);
+    state.windMs=wspd;
+
+    document.getElementById('wind-spd').textContent=wspd;
+    document.getElementById('wind-dir').textContent=degToDir16(wc.wind_direction_10m)+' ('+Math.round(wc.wind_direction_10m)+'°)';
+    document.getElementById('wind-gust').textContent=wgust;
+    document.getElementById('c-wind').textContent=wspd+' м/с';
+    document.getElementById('wx-temp').textContent=Math.round(wc.temperature_2m);
+    document.getElementById('wx-cloud').textContent=Math.round(wc.cloud_cover)+'%';
+    document.getElementById('wx-humid').textContent=Math.round(wc.relative_humidity_2m)+'%';
+    document.getElementById('wx-precip').textContent=wc.precipitation.toFixed(1);
+
+    // omen code
+    state.omenCode=calcOmenCode(
+      wd.hourly, wc.cloud_cover, wc.relative_humidity_2m
+    );
+
+    // marine
+    try{
+      const mu=`https://marine-api.open-meteo.com/v1/marine?latitude=${uLat}&longitude=${uLon}`+
+        `&current=wave_height,wave_period,wave_direction&timezone=auto`;
+      const md=await(await fetch(mu)).json();
+      if(md.current&&md.current.wave_height!=null){
+        const wh=md.current.wave_height;
+        const wp=md.current.wave_period;
+        const wdM=md.current.wave_direction;
+        state.waveM=wh;
+        document.getElementById('wave-h').textContent=wh.toFixed(1);
+        document.getElementById('c-wave').textContent=wh.toFixed(1)+'м';
+        if(wp) document.getElementById('wave-p').textContent=Math.round(wp)+'с';
+        if(wdM!=null) document.getElementById('wave-dir-txt').textContent='напр: '+degToDir16(wdM);
+      } else {
+        document.getElementById('wave-h').textContent='N/A';
+        document.getElementById('wave-dir-txt').textContent='не мор. зона';
+      }
+    }catch(e){}
+
+    renderИтого();
+    setSt('ДАННЫЕ ОБНОВЛЕНЫ · '+new Date().toTimeString().slice(0,5));
+  }catch(e){setSt('ОШИБКА ДАННЫХ · '+e.message);}
+}
+
+/* ── OMEN CODE ── */
+function calcOmenCode(hourly,cloudNow,humidNow){
+  const h=new Date().getHours();
+  const isMorning=h>=5&&h<9;
+  const isEvening=h>=18&&h<22;
+  let precipNext=50;
+  if(hourly&&hourly.precipitation_probability){
+    const pp=hourly.precipitation_probability.slice(0,6);
+    precipNext=pp.reduce((a,b)=>a+b,0)/pp.length;
   }
-  const daysToNext = (Math.ceil(age / (syno / 8)) * (syno / 8)) - age;
-  const nextDate = new Date(now.getTime() + daysToNext * 86400000);
-  const nextStr = nextDate.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
-
-  document.getElementById('moon-phase-name').textContent = phaseName;
-  document.getElementById('moon-illum').textContent = illum + '%';
-  document.getElementById('moon-age').textContent = age.toFixed(1) + ' д';
-  document.getElementById('moon-next').textContent = nextStr;
-
-  // Draw ASCII moon
-  const canvas = document.getElementById('moon-canvas');
-  canvas.textContent = drawMoonASCII(frac, illum);
+  const redSkyProxy=humidNow>68&&cloudNow>25&&cloudNow<88;
+  if(isMorning&&redSkyProxy&&precipNext>40) return 'red-morning';
+  if(isEvening&&redSkyProxy&&precipNext<25) return 'red-evening';
+  if(precipNext>60) return 'rain-likely';
+  if(precipNext<20&&cloudNow<40) return 'clear';
+  return 'neutral';
 }
 
-function drawMoonASCII(frac, illum) {
-  const W = 9, H = 7;
-  const rows = [];
-  for (let r = 0; r < H; r++) {
-    let row = '';
-    const y = (r / (H-1)) * 2 - 1;
-    for (let c = 0; c < W; c++) {
-      const x = (c / (W-1)) * 2 - 1;
-      const dist = Math.sqrt(x*x + y*y);
-      if (dist > 1.0) { row += ' '; continue; }
-      // Determine lit side
-      const litX = frac < 0.5 ? x : -x;
-      const terminator = Math.sqrt(1 - y*y) * Math.cos(Math.PI * (frac < 0.5 ? frac : frac - 0.5) * 2);
-      const lit = frac < 0.5 ? (litX > -terminator) : (litX < terminator);
-      if (dist > 0.85) row += lit ? '+' : '.';
-      else if (dist > 0.5) row += lit ? 'o' : ':';
-      else row += lit ? 'O' : ',';
+/* ── MOON ── */
+function initMoon(){
+  const now=new Date(),syno=29.53058867;
+  let age=((((now-new Date('2000-01-06T18:14:00Z'))/86400000)%syno)+syno)%syno;
+  const frac=age/syno;
+  state.moonFrac=frac;
+  state.tideFrac=frac;
+  const illum=Math.round((1-Math.cos(2*Math.PI*frac))/2*100);
+  const names=[
+    [0,'НОВОЛУНИЕ'],[0.125,'МОЛОДОЙ СЕРП'],[0.25,'ПЕРВАЯ ЧЕТВЕРТЬ'],
+    [0.375,'ПРИБЫВАЮЩАЯ'],[0.5,'ПОЛНОЛУНИЕ'],[0.625,'УБЫВАЮЩАЯ'],
+    [0.75,'ПОСЛ. ЧЕТВЕРТЬ'],[0.875,'СТАРЫЙ СЕРП']
+  ];
+  let name=names[0][1];
+  for(let i=names.length-1;i>=0;i--){if(frac>=names[i][0]-0.0625){name=names[i][1];break;}}
+  const dtn=(Math.ceil(age/(syno/8))*(syno/8))-age;
+  const nd=new Date(now.getTime()+dtn*86400000);
+
+  document.getElementById('moon-name').textContent=name;
+  document.getElementById('moon-illum').textContent=illum+'%';
+  document.getElementById('moon-age').textContent=age.toFixed(1)+'д';
+  document.getElementById('moon-next').textContent=nd.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+  document.getElementById('moon-ascii').textContent=drawMoon(frac);
+
+  const tideDir=frac<0.25?'↑ ПРИБЫВАЕТ':frac<0.5?'↓ УБЫВАЕТ':frac<0.75?'↑ ПРИБЫВАЕТ':'↓ УБЫВАЕТ';
+  const nearSyzygy=(frac<0.1||frac>0.9||(frac>0.4&&frac<0.6));
+  const nearQuad=(frac>0.2&&frac<0.3)||(frac>0.7&&frac<0.8);
+  const tideType=nearSyzygy?'СИЗИГИЙНЫЙ':nearQuad?'КВАДРАТУРНЫЙ':'СРЕДНИЙ';
+  document.getElementById('moon-tide').textContent=tideDir;
+  document.getElementById('moon-tide-type').textContent=tideType;
+}
+
+function drawMoon(frac){
+  const W=9,H=7,rows=[];
+  for(let r=0;r<H;r++){
+    let row='';const y=(r/(H-1))*2-1;
+    for(let c=0;c<W;c++){
+      const x=(c/(W-1))*2-1,d=Math.sqrt(x*x+y*y);
+      if(d>1){row+=' ';continue;}
+      const t=Math.sqrt(Math.max(0,1-y*y))*Math.cos(Math.PI*(frac<0.5?frac:frac-0.5)*2);
+      const lit=frac<0.5?(x>-t):(x<t);
+      if(d>0.85)row+=lit?'+':'.';
+      else if(d>0.5)row+=lit?'o':':';
+      else row+=lit?'O':',';
     }
     rows.push(row);
   }
   return rows.join('\n');
 }
+initMoon();
 
-getMoonData();
+/* ── RENDER ИТОГО ── */
+function renderИтого(){
+  const {windMs,waveM,tideFrac,omenCode,moonFrac}=state;
 
-// ── GEOLOCATION ──
-let userLat = null, userLon = null;
-
-function initGeo() {
-  if (!navigator.geolocation) {
-    setStatus('ГЕОЛОК: НЕ ПОДДЕРЖИВАЕТСЯ');
-    return;
+  // ── WIND factor
+  let windLabel='',windCls='fv-neutral';
+  if(windMs!=null){
+    if(windMs<5){windLabel='СПОКОЙНО';windCls='fv-ok';}
+    else if(windMs<10){windLabel='УМЕРЕННО';windCls='fv-warn';}
+    else if(windMs<15){windLabel='СИЛЬНЫЙ';windCls='fv-warn';}
+    else{windLabel='ОПАСНО';windCls='fv-bad';}
   }
-  setStatus('ЗАПРОС ГЕОЛОКАЦИИ...');
-  navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, {
-    enableHighAccuracy: true, maximumAge: 30000
-  });
-}
+  setText('f-wind',windMs!=null?windMs+' м/с':'--');
+  setClass('f-wind-v',windLabel,windCls);
 
-function onGeoSuccess(pos) {
-  userLat = pos.coords.latitude;
-  userLon = pos.coords.longitude;
-  const alt = pos.coords.altitude;
-  const acc = pos.coords.accuracy;
-
-  document.getElementById('coord-lat').textContent = userLat.toFixed(4);
-  document.getElementById('coord-lon').textContent = userLon.toFixed(4);
-
-  if (alt !== null) {
-    const altR = Math.round(alt);
-    document.getElementById('alt-val').textContent = altR;
-    document.getElementById('coord-alt').textContent = altR + ' M';
-    document.getElementById('alt-acc').textContent = '±' + Math.round(pos.coords.altitudeAccuracy || acc) + ' м';
-    const pct = Math.min(100, Math.max(0, (altR / 3000) * 100));
-    document.getElementById('alt-fill').style.width = pct + '%';
-    let bar = '';
-    for (let i = 0; i < 18; i++) bar += (i / 18 < pct / 100) ? '█' : '·';
-    document.getElementById('alt-ascii').textContent = bar;
+  // ── WAVE factor
+  let waveLabel='',waveCls='fv-neutral';
+  if(waveM!=null){
+    if(waveM<0.5){waveLabel='ШТИЛЬ';waveCls='fv-ok';}
+    else if(waveM<1.0){waveLabel='СЛАБОЕ ВОЛНЕНИЕ';waveCls='fv-ok';}
+    else if(waveM<2.0){waveLabel='УМЕРЕННОЕ';waveCls='fv-warn';}
+    else{waveLabel='СИЛЬНОЕ ВОЛНЕНИЕ';waveCls='fv-bad';}
   } else {
-    document.getElementById('alt-val').textContent = 'N/A';
-    document.getElementById('alt-ascii').textContent = 'GPS БЕЗ БАРОМЕТРА';
-    document.getElementById('coord-alt').textContent = '--- M';
+    waveLabel='НЕТ МОРСКИХ ДАННЫХ';waveCls='fv-neutral';
+  }
+  setText('f-wave',waveM!=null?waveM.toFixed(1)+' м':'--');
+  setClass('f-wave-v',waveLabel,waveCls);
+
+  // ── TIDE factor
+  let tideLabel='',tideCls='fv-neutral';
+  if(tideFrac!=null){
+    const nearSyzygy=(tideFrac<0.1||tideFrac>0.9||(tideFrac>0.4&&tideFrac<0.6));
+    const dir=(tideFrac<0.25||(tideFrac>=0.5&&tideFrac<0.75))?'ПРИБЫВАЕТ':'УБЫВАЕТ';
+    if(nearSyzygy){
+      tideLabel='СИЛЬНЫЕ ТЕЧЕНИЯ';tideCls='fv-warn';
+    } else {
+      tideLabel='ТЕЧЕНИЯ ОБЫЧНЫЕ';tideCls='fv-ok';
+    }
+    setText('f-tide',dir);
+  }
+  setClass('f-tide-v',tideLabel,tideCls);
+
+  // ── OMEN factor
+  let omenVal='',omenLabel='',omenCls='fv-neutral';
+  switch(omenCode){
+    case 'red-morning':
+      omenVal='КРАСНОЕ УТРО';omenLabel='УХУДШЕНИЕ ДНЁМ';omenCls='fv-bad';break;
+    case 'red-evening':
+      omenVal='КРАСНЫЙ ЗАКАТ';omenLabel='УТРОМ ТИХО';omenCls='fv-ok';break;
+    case 'rain-likely':
+      omenVal='ОСАДКИ ВЕРОЯТНЫ';omenLabel='СЛЕДИТЕ ЗА ПОГОДОЙ';omenCls='fv-warn';break;
+    case 'clear':
+      omenVal='НЕБО ЧИСТОЕ';omenLabel='ПОГОДА СТАБИЛЬНА';omenCls='fv-ok';break;
+    default:
+      omenVal='---';omenLabel='НЕДОСТАТОЧНО ДАННЫХ';omenCls='fv-neutral';
+  }
+  setText('f-omen',omenVal);
+  setClass('f-omen-v',omenLabel,omenCls);
+
+  // ── MOON factor
+  let moonLabel='',moonCls='fv-neutral';
+  if(moonFrac!=null){
+    const illum=Math.round((1-Math.cos(2*Math.PI*moonFrac))/2*100);
+    const isFullish=moonFrac>0.4&&moonFrac<0.6;
+    if(isFullish){moonLabel='ХОРОШАЯ НОЧНАЯ ВИДИМОСТЬ';moonCls='fv-ok';}
+    else if(illum<20){moonLabel='ТЁМНАЯ НОЧЬ';moonCls='fv-warn';}
+    else{moonLabel='ЧАСТИЧНАЯ ВИДИМОСТЬ';moonCls='fv-neutral';}
+    const illumStr=illum+'% ОСВЕЩ';
+    setText('f-moon',illumStr);
+    setClass('f-moon-v',moonLabel,moonCls);
   }
 
-  if (acc) document.getElementById('alt-acc').textContent = '±' + Math.round(acc) + ' м';
-
-  setStatus('ГЕОЛОК ОК · ДАННЫЕ ОБНОВЛЕНЫ');
-  fetchAurora();
-  fetchPlanes();
-}
-
-function onGeoError(e) {
-  setStatus('ГЕОЛОК ОШИБКА: ' + (e.message || e.code));
-  document.getElementById('alt-val').textContent = 'ERR';
-  // Still try aurora with default coords
-  fetchAurora();
-}
-
-// ── COMPASS ──
-let compassActive = false;
-
-function requestCompass() {
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().then(state => {
-      if (state === 'granted') startCompass();
-    }).catch(console.error);
+  // ── OVERALL VERDICT
+  const bad=(windMs!=null&&windMs>=15)||(waveM!=null&&waveM>=2)||omenCode==='red-morning';
+  const warn=(windMs!=null&&windMs>=10)||(waveM!=null&&waveM>=1)||omenCode==='rain-likely';
+  const vel=document.getElementById('итого-verdict');
+  if(bad){
+    vel.textContent='НЕ ВЫХОДИТЬ';vel.className='итого-verdict nogo';
+  } else if(warn){
+    vel.textContent='ВЫХОД С ОСТОРОЖНОСТЬЮ';vel.className='итого-verdict caution';
+  } else if(windMs!=null){
+    vel.textContent='ВЫХОД РАЗРЕШЁН';vel.className='итого-verdict go';
   } else {
-    startCompass();
+    vel.textContent='ОЖИДАНИЕ ДАННЫХ...';vel.className='итого-verdict fv-neutral';
   }
 }
 
-function startCompass() {
-  if (compassActive) return;
-  compassActive = true;
-  document.getElementById('compass-btn').style.display = 'none';
-  window.addEventListener('deviceorientationabsolute', onOrientation, true);
-  window.addEventListener('deviceorientation', onOrientation, true);
+function setText(id,v){document.getElementById(id).textContent=v;}
+function setClass(id,text,cls){
+  const el=document.getElementById(id);
+  el.textContent=text;
+  el.className='factor-verdict '+cls;
 }
 
-function onOrientation(e) {
-  let heading = null;
-  if (e.webkitCompassHeading != null) heading = e.webkitCompassHeading;
-  else if (e.absolute && e.alpha != null) heading = (360 - e.alpha) % 360;
-  else if (e.alpha != null) heading = (360 - e.alpha) % 360;
-  if (heading === null) return;
+/* ── FORECAST ── */
+async function fetchForecast(){
+  try{
+    const wu=`https://api.open-meteo.com/v1/forecast?latitude=${uLat}&longitude=${uLon}`+
+      `&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,`+
+      `wind_direction_10m_dominant,precipitation_sum&wind_speed_unit=ms&timezone=auto&forecast_days=3`;
+    const wd=await(await fetch(wu)).json();
+    let md=null;
+    try{
+      md=await(await fetch(
+        `https://marine-api.open-meteo.com/v1/marine?latitude=${uLat}&longitude=${uLon}`+
+        `&daily=wave_height_max&timezone=auto&forecast_days=3`
+      )).json();
+    }catch(e){}
 
-  const deg = Math.round(heading);
-  const dirs = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ','С'];
-  const dir = dirs[Math.round(deg / 45) % 8];
+    const grid=document.getElementById('fc-grid');
+    grid.innerHTML='';
+    const ruDay=i=>{
+      if(i===0)return'СЕГОДНЯ';if(i===1)return'ЗАВТРА';
+      const d=new Date();d.setDate(d.getDate()+i);
+      return['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'][d.getDay()];
+    };
+    for(let i=0;i<3;i++){
+      const tMax=Math.round(wd.daily.temperature_2m_max[i]);
+      const tMin=Math.round(wd.daily.temperature_2m_min[i]);
+      const wMax=parseFloat(wd.daily.wind_speed_10m_max[i].toFixed(1));
+      const wGust=wd.daily.wind_gusts_10m_max[i].toFixed(1);
+      const wDir=degToDir8(wd.daily.wind_direction_10m_dominant[i]);
+      const precip=wd.daily.precipitation_sum[i].toFixed(1);
+      const waveH=md&&md.daily?md.daily.wave_height_max[i]:null;
 
-  document.getElementById('compass-heading').textContent = dir;
-  document.getElementById('compass-deg').textContent = deg + ' °';
+      const bad2=(wMax>=15)||(waveH!=null&&waveH>=2);
+      const warn2=(wMax>=10)||(waveH!=null&&waveH>=1);
+      let bTxt,bCls;
+      if(bad2){bTxt='НЕ ВЫХОДИТЬ';bCls='nogo';}
+      else if(warn2){bTxt='С ОСТОРОЖНОСТЬЮ';bCls='caution';}
+      else{bTxt='ВЫХОД РАЗРЕШЁН';bCls='go';}
 
-  const rad = (heading * Math.PI) / 180;
-  const nx = Math.round(2 * Math.sin(rad));
-  const ny = Math.round(-2 * Math.cos(rad));
-  const arrow = getArrowChar(heading);
-
-  const compass = [
-    '   N   ',
-    ' .   . ',
-    'W  ' + arrow + '  E',
-    ' .   . ',
-    '   S   '
-  ];
-  document.getElementById('compass-ascii').textContent = compass.join('\n');
-}
-
-function getArrowChar(deg) {
-  const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
-  return arrows[Math.round(deg / 45) % 8];
-}
-
-// ── AURORA / KP-INDEX ──
-async function fetchAurora() {
-  document.getElementById('aurora-status').textContent = 'ОПРОС NOAA...';
-  try {
-    const r = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json');
-    const data = await r.json();
-    if (!data || data.length < 2) throw new Error('no data');
-    const last = data[data.length - 1];
-    const kp = parseFloat(last[1]);
-    document.getElementById('kp-val').textContent = kp.toFixed(1);
-
-    const segs = document.querySelectorAll('.kp-seg');
-    segs.forEach((s, i) => {
-      s.classList.remove('on', 'warn');
-      if (i < Math.floor(kp)) s.classList.add(kp >= 5 ? 'warn' : 'on');
-    });
-
-    let status, dots;
-    if (kp < 2) { status = 'ТИХО · АВРОРЫ НЕТ'; dots = '. . . . . . . . . . . .'; }
-    else if (kp < 4) { status = 'СЛАБАЯ АКТИВНОСТЬ'; dots = '. * . . * . . . * . . .'; }
-    else if (kp < 6) { status = 'УМЕРЕННАЯ · АВРОРА ВИДНА'; dots = '* . * * . * * . * * . *'; }
-    else if (kp < 8) { status = 'СИЛЬНАЯ БУРЯ · ЯРКАЯ АВРОРА'; dots = '* * * * * * * * * * * *'; }
-    else { status = '!! ЭКСТРЕМ. БУРЯ !!'; dots = '█ █ █ █ █ █ █ █ █ █ █ █'; }
-
-    document.getElementById('aurora-status').textContent = status;
-    document.getElementById('aurora-dots').textContent = dots;
-    setStatus('KP-ИНДЕКС ПОЛУЧЕН · ' + new Date().toTimeString().slice(0,5));
-  } catch(e) {
-    document.getElementById('aurora-status').textContent = 'ОШИБКА NOAA';
-    document.getElementById('kp-val').textContent = 'ERR';
-    setStatus('AURORA: ОШИБКА ЗАПРОСА');
-  }
-}
-
-// ── PLANES ──
-async function fetchPlanes() {
-  if (!userLat || !userLon) return;
-  const d = 1.5;
-  const laMin = userLat - d, laMax = userLat + d;
-  const loMin = userLon - d, loMax = userLon + d;
-  const url = `https://opensky-network.org/api/states/all?lamin=${laMin}&lomin=${loMin}&lamax=${laMax}&lomax=${loMax}`;
-
-  document.getElementById('plane-list').innerHTML = '<div style="color:var(--fg3)">ОПРОС OPENSKY...</div>';
-
-  try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    const states = data.states || [];
-
-    if (states.length === 0) {
-      document.getElementById('plane-list').innerHTML =
-        '<div class="err">НЕТ ВОЗДУШНЫХ СУДОВ В ЗОНЕ</div>';
-      drawRadar([]);
-      return;
+      const div=document.createElement('div');
+      div.innerHTML=`
+        <div class="fc-day-name">${ruDay(i)}</div>
+        <div class="fc-row"><span class="fc-k">ТЕМП</span><span class="fc-v">${tMin}..${tMax}°</span></div>
+        <div class="fc-row"><span class="fc-k">ВЕТЕР</span><span class="fc-v">${wMax}м/с ${wDir}</span></div>
+        <div class="fc-row"><span class="fc-k">ПОРЫВ</span><span class="fc-v">${wGust}м/с</span></div>
+        <div class="fc-row"><span class="fc-k">ОСАДКИ</span><span class="fc-v">${precip}мм</span></div>
+        ${waveH!=null?`<div class="fc-row"><span class="fc-k">ВОЛНА</span><span class="fc-v">${waveH.toFixed(1)}м</span></div>`:''}
+        <div class="fc-verdict ${bCls}">${bTxt}</div>
+      `;
+      grid.appendChild(div);
     }
-
-    const planes = states.slice(0, 5).map(s => ({
-      call: (s[1] || '??????').trim() || 'N/A',
-      lat: s[6],
-      lon: s[5],
-      alt: s[7] ? Math.round(s[7]) : null,
-      vel: s[9] ? Math.round(s[9] * 3.6) : null,
-      hdg: s[10] ? Math.round(s[10]) : null,
-    }));
-
-    const listEl = document.getElementById('plane-list');
-    listEl.innerHTML = '';
-    planes.forEach(p => {
-      const dist = p.lat && p.lon ? calcDist(userLat, userLon, p.lat, p.lon) : null;
-      const row = document.createElement('div');
-      row.className = 'plane-row';
-      row.innerHTML =
-        `<span class="plane-call">${p.call}</span>` +
-        `<span class="plane-info">${p.vel ? p.vel+'км/ч' : '---'} ${p.hdg !== null ? hdgToDir(p.hdg) : ''}${dist ? ' ~'+dist+'км' : ''}</span>` +
-        `<span class="plane-alt-r">${p.alt ? p.alt+'м' : '---'}</span>`;
-      listEl.appendChild(row);
-    });
-
-    drawRadar(planes);
-    setStatus('OPENSKY: ' + states.length + ' СУДОВ НАЙДЕНО');
-  } catch(e) {
-    document.getElementById('plane-list').innerHTML =
-      '<div class="err">OPENSKY: ОШИБКА (' + e.message + ')</div>';
-    drawRadar([]);
-    setStatus('OPENSKY: ОШИБКА ЗАПРОСА');
+  }catch(e){
+    document.getElementById('fc-grid').innerHTML='<div style="color:var(--fg3);font-size:0.72em">ОШИБКА ПРОГНОЗА</div>';
   }
 }
 
-function calcDist(la1, lo1, la2, lo2) {
-  const R = 6371;
-  const dLa = (la2-la1)*Math.PI/180;
-  const dLo = (lo2-lo1)*Math.PI/180;
-  const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
-  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+/* ── COMPASS ── */
+let compassOn=false;
+function reqCompass(){
+  if(typeof DeviceOrientationEvent!=='undefined'&&
+     typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(s=>{if(s==='granted')startCompass();}).catch(()=>{});
+  }else startCompass();
+}
+function startCompass(){
+  if(compassOn)return;compassOn=true;
+  document.getElementById('compass-btn').style.display='none';
+  window.addEventListener('deviceorientationabsolute',onOri,true);
+  window.addEventListener('deviceorientation',onOri,true);
+}
+function onOri(e){
+  let h=null;
+  if(e.webkitCompassHeading!=null)h=e.webkitCompassHeading;
+  else if(e.absolute&&e.alpha!=null)h=(360-e.alpha)%360;
+  else if(e.alpha!=null)h=(360-e.alpha)%360;
+  if(h===null)return;
+  const deg=Math.round(h);
+  const dirs=['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
+  const arrows=['↑','↗','→','↘','↓','↙','←','↖'];
+  document.getElementById('compass-hdg').textContent=dirs[Math.round(deg/45)%8];
+  document.getElementById('compass-deg').textContent=deg+'°';
+  document.getElementById('cArr').textContent=arrows[Math.round(deg/45)%8];
 }
 
-function hdgToDir(h) {
-  const d = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
-  return d[Math.round(h/45)%8];
+/* ── UTILS ── */
+function degToDir16(d){
+  const s=['С','ССВ','СВ','ВСВ','В','ВЮВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЗЮЗ','З','ЗСЗ','СЗ','ССЗ'];
+  return s[Math.round(d/22.5)%16];
+}
+function degToDir8(d){
+  return['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'][Math.round(d/45)%8];
 }
 
-function drawRadar(planes) {
-  const W = 38, H = 4;
-  const grid = Array.from({length: H}, () => Array(W).fill('.'));
-  // Center cross
-  const cx = Math.floor(W/2), cy = Math.floor(H/2);
-  grid[cy][cx] = '+';
-
-  planes.forEach((p, idx) => {
-    if (!p.lat || !p.lon || !userLat || !userLon) return;
-    const dx = (p.lon - userLon) / 1.5;
-    const dy = (userLat - p.lat) / 1.5;
-    const px = Math.round(cx + dx * (W/2 - 1));
-    const py = Math.round(cy + dy * (H/2 - 1));
-    if (px >= 0 && px < W && py >= 0 && py < H) {
-      grid[py][px] = String.fromCharCode(65 + idx); // A B C...
-    }
-  });
-
-  document.getElementById('radar-ascii').textContent =
-    grid.map(r => r.join('')).join('\n');
-}
-
-// ── INIT ──
+/* ── INIT ── */
 initGeo();
-fetchAurora();
-
-// Refresh planes every 30s
-setInterval(() => { if (userLat) fetchPlanes(); }, 30000);
-// Refresh aurora every 3min
-setInterval(fetchAurora, 180000);
+setInterval(()=>{if(uLat)fetchAll();},600000);
 </script>
 </body>
 </html>
