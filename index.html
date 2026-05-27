@@ -21,15 +21,13 @@
   --bad:#cc6464;
   --fs:clamp(12.5px,3.4vw,15px);
 }
-html,body{
-  height:100%;background:#000;color:var(--fg);
-  font-family:'Share Tech Mono','Courier New',monospace;
-  font-size:var(--fs);line-height:1.45;overflow:hidden;
-}
+html{background:#000;min-height:100%}
 body{
-  display:grid;
-  grid-template-rows:auto auto auto auto auto auto 1fr auto auto;
-  height:100dvh;padding:9px 11px 7px;gap:5px;
+  background:#000;color:var(--fg);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:var(--fs);line-height:1.45;
+  overflow-y:auto;overflow-x:hidden;
+  min-height:100dvh;padding:0;margin:0;
 }
 body::after{
   content:'';position:fixed;inset:0;
@@ -37,21 +35,36 @@ body::after{
   pointer-events:none;z-index:9999;
 }
 
-/* TOP BAR */
-.topbar{
-  display:flex;justify-content:space-between;align-items:baseline;
-  border-bottom:1px solid var(--dim);padding-bottom:5px;
+/* STICKY SHELL */
+.sticky-shell{
+  position:sticky;top:0;z-index:500;
+  background:#000;padding:6px 11px 5px;
+  border-bottom:1px solid var(--dim);
 }
-.sysid{font-size:1.15em;color:var(--acc);letter-spacing:0.12em}
-.clock{color:var(--fg2);font-size:1em}
+/* top bar inside sticky */
+.topbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.sysid{font-size:1.1em;color:var(--acc);letter-spacing:0.12em}
+.clock{color:var(--fg2);font-size:0.95em}
+/* sticky summary strip */
+.sticky-summary{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:0 8px;align-items:baseline;
+}
+.ss-item{display:flex;flex-direction:column}
+.ss-k{font-size:0.58em;color:var(--fg3);letter-spacing:0.1em}
+.ss-v{font-size:0.92em;color:var(--fg);letter-spacing:0.03em}
+.ss-verdict{font-size:0.8em;letter-spacing:0.05em}
+
+/* SCROLLABLE CONTENT */
+.scroll-content{padding:6px 11px 12px;display:flex;flex-direction:column;gap:5px}
 
 /* SECTION LABEL */
-.lbl{font-size:0.7em;color:var(--fg2);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:3px}
+.lbl{font-size:0.68em;color:var(--fg2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2px}
 
 /* ROW NOW: 3 cards */
-.row-now{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
-.card{border:1px solid var(--dim);padding:6px 8px;display:flex;flex-direction:column;gap:2px}
-.card-big{font-size:1.85em;color:var(--acc);line-height:1;letter-spacing:0.02em}
+.row-now{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.card{border:1px solid var(--dim);padding:5px 7px;display:flex;flex-direction:column;gap:2px}
+.card-big{font-size:1.7em;color:var(--acc);line-height:1;letter-spacing:0.02em}
 .card-unit{font-size:0.58em;color:var(--fg3);margin-left:1px}
 .card-sub{font-size:0.75em;color:var(--fg2)}
 .card-sub2{font-size:0.68em;color:var(--fg3)}
@@ -96,11 +109,14 @@ body::after{
 }
 .combined-chart{display:flex;flex-direction:column}
 .combined-итого{display:flex;flex-direction:column}
-.hourly-chart{
-  font-family:'Share Tech Mono',monospace;
-  font-size:0.6em;line-height:1.55;color:var(--fg3);
-  overflow:hidden;margin-top:3px;flex:1;
-}
+.hourly-chart{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:3px}
+.hcol{display:flex;flex-direction:column;gap:1px;border:1px solid var(--dim);padding:3px 5px}
+.hcol-time{font-size:0.65em;color:var(--fg2);letter-spacing:0.1em;border-bottom:1px solid var(--dim);padding-bottom:2px;margin-bottom:2px}
+.hcol-row{display:flex;justify-content:space-between;align-items:baseline}
+.hcol-k{font-size:0.6em;color:var(--fg3)}
+.hcol-v{font-size:0.78em}
+.hcol-bar{height:4px;margin-top:2px;background:var(--dim)}
+.hcol-bar-fill{height:100%;transition:width 0.5s}
 
 /* PRESSURE TREND */
 .ptup{color:var(--bad)}
@@ -108,7 +124,7 @@ body::after{
 .ptstable{color:var(--fg3)}
 
 /* ROW FORECAST */
-.row-fc{border:1px solid var(--dim);padding:6px 8px}
+.row-fc{border:1px solid var(--dim);padding:5px 7px}
 .fc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 8px;margin-top:3px}
 .fc-day-name{
   font-size:0.72em;color:var(--fg2);letter-spacing:0.1em;
@@ -134,7 +150,7 @@ body::after{
 .fv-ok{color:var(--good)}.fv-warn{color:var(--warn)}.fv-bad{color:var(--bad)}.fv-neutral{color:var(--fg3)}
 
 /* MAP */
-.row-map{position:relative;border:1px solid var(--dim);overflow:hidden;min-height:0}
+.row-map{position:relative;border:1px solid var(--dim);overflow:hidden;height:280px}
 #map{width:100%;height:100%}
 .map-label{
   position:absolute;top:6px;left:6px;z-index:1000;
@@ -167,21 +183,19 @@ body::after{
 
 /* SETTINGS ROW */
 .row-settings{
-  display:grid;grid-template-columns:auto 1fr;gap:8px 14px;
-  align-items:start;border:1px solid var(--dim);padding:6px 8px;
+  display:grid;grid-template-columns:auto 1fr;gap:5px 12px;
+  align-items:start;border:1px solid var(--dim);padding:5px 7px;
 }
 .setting-group{display:flex;flex-direction:column;gap:3px}
 
 /* VESSEL SELECTOR */
-.vessel-btns{display:flex;gap:4px;flex-wrap:wrap}
-.vbtn{
-  background:transparent;border:1px solid var(--dim);
-  color:var(--fg3);font-family:'Share Tech Mono',monospace;
-  font-size:0.68em;padding:2px 7px;cursor:pointer;letter-spacing:0.08em;
-  transition:all 0.12s;
+.vessel-select{
+  background:#000;border:1px solid var(--dim);
+  color:var(--fg);font-family:'Share Tech Mono',monospace;
+  font-size:0.75em;padding:2px 5px;cursor:pointer;
+  letter-spacing:0.06em;outline:none;
 }
-.vbtn:hover{border-color:var(--fg2);color:var(--fg2)}
-.vbtn.active{border-color:var(--fg);color:var(--acc);background:var(--dim2)}
+.vessel-select:focus{border-color:var(--fg2)}
 
 /* DESTINATION */
 .dest-wrap{display:flex;gap:4px;align-items:center}
@@ -297,21 +311,45 @@ body::after{
 <!-- TOP BAR -->
 <div class="offline-banner" id="offline-banner">ОФЛАЙН · ДАННЫЕ ОТ <span id="offline-ts">--:--</span></div>
 
-<div class="topbar">
-  <div class="sysid">OVR·SEA</div>
-  <div class="clock" id="clock">--:--:--</div>
+<!-- STICKY SHELL -->
+<div class="sticky-shell">
+  <div class="topbar">
+    <div class="sysid">OVR·SEA</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+  <div class="sticky-summary">
+    <div class="ss-item">
+      <span class="ss-k">ВЕТЕР</span>
+      <span class="ss-v" id="ss-wind">-- м/с</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ВОЛНА</span>
+      <span class="ss-v" id="ss-wave">-.- м</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ТЕМП</span>
+      <span class="ss-v" id="ss-temp">--°C</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ИТОГО</span>
+      <span class="ss-v ss-verdict go" id="ss-verdict">---</span>
+    </div>
+  </div>
 </div>
+
+<!-- SCROLLABLE CONTENT -->
+<div class="scroll-content">
 
 <!-- VESSEL + DESTINATION -->
 <div class="row-settings">
   <div class="setting-group">
     <div class="lbl">// СУДНО</div>
-    <div class="vessel-btns">
-      <button class="vbtn active" data-v="sup" onclick="setVessel(this)">SUP</button>
-      <button class="vbtn" data-v="kayak" onclick="setVessel(this)">БАЙДАРКА</button>
-      <button class="vbtn" data-v="motor" onclick="setVessel(this)">МОТОРНАЯ</button>
-      <button class="vbtn" data-v="sail" onclick="setVessel(this)">ПАРУСНАЯ</button>
-    </div>
+    <select class="vessel-select" id="vessel-select" onchange="setVesselSelect(this)">
+      <option value="sup">SUP</option>
+      <option value="kayak">БАЙДАРКА</option>
+      <option value="motor" selected>КАТЕР / МОТОРНАЯ</option>
+      <option value="sail">ПАРУСНАЯ</option>
+    </select>
   </div>
   <div class="setting-group">
     <div class="lbl">// ТОЧКА ВЫХОДА</div>
@@ -678,6 +716,7 @@ async function fetchNow(){
     }catch(e){}
 
     renderИтого();
+    updateStickySummary();
     saveSnapshot();
     setSt('ДАННЫЕ ОБНОВЛЕНЫ · '+new Date().toTimeString().slice(0,5));
   }catch(e){setSt('ОШИБКА ДАННЫХ · '+e.message);}
@@ -751,6 +790,28 @@ function drawMoon(frac){
 }
 initMoon();
 
+/* ── STICKY SUMMARY UPDATE ── */
+function updateStickySummary(){
+  const windEl=document.getElementById('ss-wind');
+  const waveEl=document.getElementById('ss-wave');
+  const tempEl=document.getElementById('ss-temp');
+  const verdEl=document.getElementById('ss-verdict');
+  if(windEl&&state.windMs!=null) windEl.textContent=state.windMs+' м/с';
+  if(waveEl&&state.waveM!=null) waveEl.textContent=state.waveM.toFixed(1)+' м';
+  if(tempEl){
+    const t=document.getElementById('wx-temp');
+    if(t) tempEl.textContent=t.textContent+'°C';
+  }
+  if(verdEl){
+    const v=document.getElementById('итого-verdict');
+    if(v){
+      verdEl.textContent=v.textContent;
+      verdEl.className='ss-v ss-verdict '+
+        (v.className.includes('nogo')?'nogo':v.className.includes('caution')?'caution':'go');
+    }
+  }
+}
+
 /* ── PRESSURE TREND ── */
 function renderPressureTrend(){
   const el=document.getElementById('wx-pressure-trend');
@@ -766,63 +827,54 @@ function renderPressureTrend(){
   state.pressOmen=d<-2?'bad':d<-0.5?'warn':'ok';
 }
 
-/* ── HOURLY CHART ── */
+/* ── HOURLY CHART — 3 columns ── */
 function renderHourlyChart(){
   const el=document.getElementById('hourly-chart');
   if(!el)return;
   const wind=state.hourlyWind;
   const wave=state.hourlyWave;
-  if(!wind.length){el.textContent='НЕТ ДАННЫХ';return;}
+  if(!wind.length){el.innerHTML='<div style="color:var(--fg3);font-size:0.75em">НЕТ ДАННЫХ</div>';return;}
 
   const v=VESSELS[currentVessel];
   const now=new Date();
   const startH=now.getHours();
-  // show 12 hours from now
-  const hours=12;
-  const W=Math.min(hours, wind.length);
+  // 3 windows: now, +4h, +8h
+  const offsets=[0,4,8];
+  const labels=['СЕЙЧАС','+4 ЧАС','+8 ЧАС'];
 
-  // build header: hour labels
-  let hdrLine='ЧАС  ';
-  let windLine='ВЕТЕР';
-  let waveLine='ВОЛНА';
-  let barLine ='     ';
+  el.innerHTML='';
+  offsets.forEach((off,idx)=>{
+    const i=Math.min(off, wind.length-1);
+    const h=(startH+off)%24;
+    const ws=wind[i]!=null?parseFloat(wind[i].toFixed(1)):null;
+    const wv=wave[i]!=null?parseFloat(wave[i].toFixed(1)):null;
 
-  for(let i=0;i<W;i++){
-    const h=(startH+i)%24;
-    const hStr=String(h).padStart(2,'0');
-    const ws=wind[i]!=null?wind[i]:0;
-    const wv=wave[i]!=null?wave[i]:null;
+    let verdict,vCls;
+    const wOk=ws==null||(ws<=v.windOk&&(wv==null||wv<=v.waveOk));
+    const wWarn=ws==null||ws<=v.windWarn;
+    const wvWarn=wv==null||wv<=v.waveWarn;
+    if(wOk){verdict='ОК';vCls='var(--good)';}
+    else if(wWarn&&wvWarn){verdict='ОСТ';vCls='var(--warn)';}
+    else{verdict='НЕТ';vCls='var(--bad)';}
 
-    // wind bar char
-    let wChar,wCls;
-    if(ws<=v.windOk){wChar='▁';wCls='ok';}
-    else if(ws<=v.windWarn){wChar='▄';wCls='warn';}
-    else{wChar='█';wCls='bad';}
+    // wind bar width %
+    const windPct=ws!=null?Math.min(100,(ws/20)*100):0;
+    const windBarClr=ws==null?'var(--fg3)':ws<=v.windOk?'var(--good)':ws<=v.windWarn?'var(--warn)':'var(--bad)';
+    const wavePct=wv!=null?Math.min(100,(wv/3)*100):0;
+    const waveBarClr=wv==null?'var(--fg3)':wv<=v.waveOk?'var(--good)':wv<=v.waveWarn?'var(--warn)':'var(--bad)';
 
-    // wave bar char
-    let vChar='·';
-    if(wv!=null){
-      if(wv<=v.waveOk)vChar='▁';
-      else if(wv<=v.waveWarn)vChar='▄';
-      else vChar='█';
-    }
-
-    hdrLine +=' '+hStr;
-    windLine+=' '+ws.toFixed(0).padStart(2,' ');
-    waveLine+=' '+(wv!=null?wv.toFixed(1).padStart(2,' '):'N/A').slice(0,3).padStart(3,' ');
-    barLine +=' '+wChar+wChar;
-  }
-
-  // render as colored spans
-  el.innerHTML=[
-    '<span style="color:var(--fg3)">'+escH(hdrLine)+'</span>',
-    '<span style="color:var(--fg2)">'+escH(windLine)+'</span>',
-    '<span style="color:var(--fg3)">'+escH(waveLine)+'</span>',
-    '<span style="color:var(--fg3)">'+escH(barLine)+'</span>'
-  ].join('<br>');
+    const col=document.createElement('div');
+    col.className='hcol';
+    col.innerHTML=
+      '<div class="hcol-time">'+labels[idx]+' '+String(h).padStart(2,'0')+'ч</div>'+
+      '<div class="hcol-row"><span class="hcol-k">ВЕТЕР</span><span class="hcol-v" style="color:'+windBarClr+'">'+(ws!=null?ws+' м/с':'--')+'</span></div>'+
+      '<div class="hcol-bar"><div class="hcol-bar-fill" style="width:'+windPct+'%;background:'+windBarClr+'"></div></div>'+
+      '<div class="hcol-row"><span class="hcol-k">ВОЛНА</span><span class="hcol-v" style="color:'+waveBarClr+'">'+(wv!=null?wv+' м':'N/A')+'</span></div>'+
+      '<div class="hcol-bar"><div class="hcol-bar-fill" style="width:'+wavePct+'%;background:'+waveBarClr+'"></div></div>'+
+      '<div style="margin-top:3px;font-size:0.68em;border:1px solid '+vCls+';color:'+vCls+';padding:0 3px;display:inline-block">'+verdict+'</div>';
+    el.appendChild(col);
+  });
 }
-
-function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 
 /* ── RENDER ИТОГО ── */
 function renderИтого(){
@@ -1030,12 +1082,12 @@ const VESSELS={
 };
 let currentVessel='sup';
 
-function setVessel(btn){
-  document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentVessel=btn.dataset.v;
+function setVesselSelect(sel){
+  currentVessel=sel.value;
+  try{localStorage.setItem('ovr_vessel',currentVessel);}catch(e){}
   renderИтого();
   renderHourlyChart();
+  updateStickySummary();
 }
 
 /* ── DESTINATION ── */
@@ -1119,6 +1171,15 @@ function getCoords(){
 }
 
 /* ── INIT ── */
+// restore vessel choice
+try{
+  const saved=localStorage.getItem('ovr_vessel');
+  if(saved&&VESSELS[saved]){
+    currentVessel=saved;
+    const sel=document.getElementById('vessel-select');
+    if(sel) sel.value=saved;
+  }
+}catch(e){}
 initGeo();
 setInterval(()=>{if(uLat)fetchAll();},600000);
 
@@ -1303,5 +1364,6 @@ function checkVibration(newLevel){
   lastVerdictLevel = newLevel;
 }
 </script>
+</div><!-- /scroll-content -->
 </body>
 </html>
