@@ -61,6 +61,19 @@ body::after{
 .ss-k{font-size:0.58em;color:var(--fg3);letter-spacing:0.1em}
 .ss-v{font-size:0.92em;color:var(--fg);letter-spacing:0.03em}
 .ss-verdict{font-size:0.8em;letter-spacing:0.05em}
+.sticky-safety{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:0 8px;align-items:baseline;
+  margin-top:3px;padding-top:3px;
+  border-top:1px solid var(--dim);
+}
+.sticky-alert{
+  font-size:0.65em;letter-spacing:0.06em;
+  padding:2px 0;color:var(--bad);
+  border-top:1px solid rgba(200,100,100,0.3);
+  margin-top:2px;padding-top:3px;
+}
+.sticky-alert.warn{color:var(--warn);border-top-color:rgba(200,180,100,0.3)}
 .sticky-nav{
   display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
   gap:0 8px;align-items:baseline;
@@ -243,6 +256,25 @@ body::after{
 .map-vbtn:hover{border-color:var(--fg2);color:var(--fg)}
 .map-vbtn.active{border-color:var(--warn);color:var(--warn)}
 
+/* TRACK BAR */
+.track-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  border:1px solid var(--good);padding:4px 8px;
+  background:rgba(120,200,120,0.05);
+}
+.track-info{display:flex;gap:10px;flex-wrap:wrap}
+.track-stat{font-size:0.68em;color:var(--fg2)}
+.track-stat b{color:var(--good)}
+.track-btns{display:flex;gap:5px}
+.trk-btn{
+  background:transparent;border:1px solid var(--fg3);
+  color:var(--fg2);font-family:'Share Tech Mono',monospace;
+  font-size:0.65em;padding:2px 7px;cursor:pointer;letter-spacing:0.08em;
+}
+.trk-btn:hover{border-color:var(--fg);color:var(--acc)}
+.map-vbtn.recording{border-color:var(--bad)!important;color:var(--bad)!important;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
 /* MAP EXPAND BUTTON */
 .map-expand-btn{
   position:absolute;top:6px;right:6px;z-index:1001;
@@ -263,8 +295,11 @@ body::after{
 
 .fs-topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 11px;border-bottom:1px solid var(--dim);
+  padding-top:calc(8px + env(safe-area-inset-top));
+  padding-bottom:8px;padding-left:11px;padding-right:11px;
+  border-bottom:1px solid var(--dim);
   flex-shrink:0;
+  background:#000;
 }
 .fs-tabs{display:flex;gap:6px}
 .fs-tab{
@@ -303,6 +338,7 @@ body::after{
 .leaflet-container{background:#080808!important;font-family:'Share Tech Mono',monospace}
 .leaflet-tile{filter:invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.88)}
 .leaflet-control-zoom a{background:#111!important;color:var(--fg)!important;border-color:var(--dim)!important;font-family:inherit}
+.dest-popup .leaflet-popup-content-wrapper{min-width:170px}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{
   background:#0d0d0d;color:var(--fg);border:1px solid var(--dim);
   font-family:'Share Tech Mono',monospace;font-size:0.8em;
@@ -318,6 +354,52 @@ body::after{
 .sun-bar{width:100%;height:5px;background:var(--dim);position:relative}
 .sun-fill{height:100%;background:var(--warn);transition:width 1s}
 .sun-remain{font-size:0.6em;color:var(--fg3);text-align:center}
+
+/* SAFETY BLOCK */
+.safety-block{
+  border:1px solid var(--dim);padding:6px 8px;
+  display:flex;flex-direction:column;gap:5px;
+}
+.safety-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.safety-sos-wrap{display:flex;align-items:center;gap:8px}
+.sos-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  background:transparent;border:1px solid var(--bad);
+  color:var(--bad);font-family:'Share Tech Mono',monospace;
+  font-size:0.85em;padding:3px 10px;cursor:pointer;
+  letter-spacing:0.1em;text-decoration:none;
+  transition:background 0.15s;
+}
+.sos-btn:hover,.sos-btn:active{background:rgba(200,100,100,0.15)}
+.sos-icon{font-size:1.1em;font-weight:bold}
+.sos-region{font-size:0.62em;color:var(--fg3)}
+.safety-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+}
+.safety-stat{display:flex;flex-direction:column}
+.safety-k{font-size:0.6em;color:var(--fg3);letter-spacing:0.1em}
+.safety-v{font-size:0.85em;color:var(--fg)}
+.safety-alert{
+  font-size:0.72em;letter-spacing:0.06em;
+  padding:4px 7px;border:1px solid currentColor;
+  line-height:1.5;
+}
+.alert-bad{color:var(--bad)}
+.alert-warn{color:var(--warn)}
+
+/* SOS LINE */
+.sos-line{
+  display:flex;align-items:baseline;gap:8px;
+  padding:4px 0;border-top:1px solid var(--dim);
+  font-size:0.65em;
+}
+.sos-line-label{color:var(--fg3);letter-spacing:0.1em}
+.sos-line-num{
+  color:var(--bad);text-decoration:none;
+  font-size:1.1em;letter-spacing:0.08em;
+}
+.sos-line-num:hover{text-decoration:underline}
+.sos-line-region{color:var(--fg3);font-size:0.9em}
 
 /* OFFLINE BANNER */
 .offline-banner{
@@ -360,6 +442,27 @@ body::after{
       <span class="ss-v ss-verdict go" id="ss-verdict">---</span>
     </div>
   </div>
+  <!-- safety row — always visible -->
+  <div class="sticky-safety">
+    <div class="ss-item">
+      <span class="ss-k">ВОДА</span>
+      <span class="ss-v" id="ss-water">--°C</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ВЫЖИВАЕМ</span>
+      <span class="ss-v" id="ss-survival">---</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ВИДИМОСТЬ</span>
+      <span class="ss-v" id="ss-vis">-- КМ</span>
+    </div>
+    <div class="ss-item">
+      <span class="ss-k">ДО БЕРЕГА</span>
+      <span class="ss-v" id="ss-shore">---</span>
+    </div>
+  </div>
+  <!-- alert row — only when danger -->
+  <div class="sticky-alert" id="sticky-alert" style="display:none"></div>
   <!-- nav row — only when dest is set -->
   <div class="sticky-nav" id="sticky-nav" style="display:none">
     <div class="ss-item">
@@ -412,80 +515,21 @@ body::after{
     <div class="lbl">// ВЕТЕР</div>
     <div class="card-big"><span id="wind-spd">--</span><span class="card-unit">м/с</span></div>
     <div class="card-sub" id="wind-dir">---</div>
-    <div class="card-sub2">порыв <span id="wind-gust">--</span> м/с</div>
+    <div class="card-sub2">ПОРЫВ <span id="wind-gust">--</span> М/С</div>
   </div>
   <div class="card">
     <div class="lbl">// ВОЛНЫ</div>
     <div class="card-big"><span id="wave-h">-.-</span><span class="card-unit">м</span></div>
-    <div class="card-sub">период <span id="wave-p">--</span>с</div>
+    <div class="card-sub">ПЕРИОД <span id="wave-p">--</span> С</div>
     <div class="card-sub2" id="wave-dir-txt">напр: ---</div>
   </div>
   <div class="card">
     <div class="lbl">// ПОГОДА</div>
     <div class="card-big"><span id="wx-temp">--</span><span class="card-unit">°C</span></div>
-    <div class="card-sub">обл <span id="wx-cloud">--%</span> · влаж <span id="wx-humid">--%</span></div>
-    <div class="card-sub2">осадки <span id="wx-precip">--</span> мм</div>
-    <div class="card-sub2"><span id="wx-pressure">---- гПа</span> <span id="wx-pressure-trend"></span></div>
-    <div class="card-sub2">видим <span id="wx-vis">-- км</span></div>
-  </div>
-</div>
-
-<!-- ROW 1b: SUN + WATER -->
-<div class="row-sun">
-  <div class="card">
-    <div class="lbl">// СВЕТОВОЙ ДЕНЬ</div>
-    <div class="sun-row">
-      <div class="sun-item">
-        <div class="sun-icon">↑</div>
-        <div class="sun-label">ВОСХОД</div>
-        <div class="sun-time" id="sun-rise">--:--</div>
-      </div>
-      <div class="sun-bar-wrap">
-        <div class="sun-bar"><div class="sun-fill" id="sun-fill" style="width:0%"></div></div>
-        <div class="sun-remain" id="sun-remain">-- ч до заката</div>
-      </div>
-      <div class="sun-item">
-        <div class="sun-icon">↓</div>
-        <div class="sun-label">ЗАКАТ</div>
-        <div class="sun-time" id="sun-set">--:--</div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="lbl">// ВОДА</div>
-    <div class="card-big"><span id="water-temp">--</span><span class="card-unit">°C</span></div>
-    <div class="card-sub" id="water-safety">---</div>
-    <div class="card-sub2" id="water-survival">---</div>
-  </div>
-</div>
-
-<!-- ROW 2: MOON + COMPASS — pure data -->
-<div class="row-meta">
-  <div class="card">
-    <div class="lbl">// ЛУНА · ПРИЛИВ</div>
-    <div class="moon-name" id="moon-name">...</div>
-    <div class="moon-cols">
-      <div class="mrow"><span class="k">ОСВЕЩ</span><span class="v" id="moon-illum">--%</span></div>
-      <div class="mrow"><span class="k">ПРИЛИВ</span><span class="v" id="moon-tide">---</span></div>
-      <div class="mrow"><span class="k">ДЕНЬ</span><span class="v" id="moon-age">--д</span></div>
-      <div class="mrow"><span class="k">ТИП</span><span class="v" id="moon-tide-type">---</span></div>
-      <div class="mrow"><span class="k">СЛЕД.ФАЗА</span><span class="v" id="moon-next">--.-</span></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="lbl">// КОМПАС</div>
-    <div class="compass-outer">
-      <div class="compass-grid">
-        <span class="cN">N</span>
-        <span class="cW">W</span>
-        <span class="cArr" id="cArr">+</span>
-        <span class="cE">E</span>
-        <span class="cS">S</span>
-      </div>
-      <div class="compass-hdg" id="compass-hdg">---</div>
-      <div class="compass-deg" id="compass-deg">---°</div>
-      <button id="compass-btn" onclick="reqCompass()">[ РАЗРЕШИТЬ ]</button>
-    </div>
+    <div class="card-sub">ОБЛАЧНОСТЬ <span id="wx-cloud">--%</span> · ВЛАЖНОСТЬ <span id="wx-humid">--%</span></div>
+    <div class="card-sub2">ОСАДКИ <span id="wx-precip">--</span> ММ</div>
+    <div class="card-sub2">ДАВЛЕНИЕ <span id="wx-pressure">----</span> ГПА <span id="wx-pressure-trend"></span></div>
+    <div class="card-sub2">ВИДИМОСТЬ <span id="wx-vis">-- КМ</span></div>
   </div>
 </div>
 
@@ -549,16 +593,87 @@ body::after{
   </div>
 </div>
 
-<!-- ROW 5: MAP -->
+<!-- ROW 1b: SUN + WATER -->
+<div class="row-sun">
+  <div class="card">
+    <div class="lbl">// СВЕТОВОЙ ДЕНЬ</div>
+    <div class="sun-row">
+      <div class="sun-item">
+        <div class="sun-icon">↑</div>
+        <div class="sun-label">ВОСХОД</div>
+        <div class="sun-time" id="sun-rise">--:--</div>
+      </div>
+      <div class="sun-bar-wrap">
+        <div class="sun-bar"><div class="sun-fill" id="sun-fill" style="width:0%"></div></div>
+        <div class="sun-remain" id="sun-remain">-- ч до заката</div>
+      </div>
+      <div class="sun-item">
+        <div class="sun-icon">↓</div>
+        <div class="sun-label">ЗАКАТ</div>
+        <div class="sun-time" id="sun-set">--:--</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">// ВОДА</div>
+    <div class="card-big"><span id="water-temp">--</span><span class="card-unit">°C</span></div>
+    <div class="card-sub" id="water-safety" style="text-transform:uppercase">---</div>
+    <div class="card-sub2" id="water-survival" style="text-transform:uppercase">---</div>
+  </div>
+</div>
+
+<!-- ROW 2: MOON + COMPASS — pure data -->
+<div class="row-meta">
+  <div class="card">
+    <div class="lbl">// ЛУНА · ПРИЛИВ</div>
+    <div class="moon-name" id="moon-name">...</div>
+    <div class="moon-cols">
+      <div class="mrow"><span class="k">ОСВЕЩ</span><span class="v" id="moon-illum">--%</span></div>
+      <div class="mrow"><span class="k">ДЕНЬ ЦИКЛА</span><span class="v" id="moon-age">--д</span></div>
+      <div class="mrow"><span class="k">СЛЕД ФАЗА</span><span class="v" id="moon-next">--.-</span></div>
+      <div class="mrow"><span class="k">↑ ПРИЛИВ</span><span class="v" id="tide-next-high">--:--</span></div>
+      <div class="mrow"><span class="k">↓ ОТЛИВ</span><span class="v" id="tide-next-low">--:--</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">// КОМПАС</div>
+    <div class="compass-outer">
+      <div class="compass-grid">
+        <span class="cN">N</span>
+        <span class="cW">W</span>
+        <span class="cArr" id="cArr">+</span>
+        <span class="cE">E</span>
+        <span class="cS">S</span>
+      </div>
+      <div class="compass-hdg" id="compass-hdg">---</div>
+      <div class="compass-deg" id="compass-deg">---°</div>
+      <button id="compass-btn" onclick="reqCompass()">[ РАЗРЕШИТЬ ]</button>
+    </div>
+  </div>
+</div>
 <div class="row-map">
-  <div class="map-label" id="map-label">OPENSEA · МОРСКАЯ КАРТА</div>
+  <div class="map-label" id="map-label">OPENSEA · ДОЛГИЙ ТАП — ТОЧКА ВЫХОДА</div>
   <div class="map-view-btns">
     <button class="map-vbtn active" id="mvbtn-me" onclick="mapViewMe()">[ Я ]</button>
     <button class="map-vbtn" id="mvbtn-dest" onclick="mapViewDest()" style="display:none">[ ВЫХОД ]</button>
     <button class="map-vbtn" id="mvbtn-marinas" onclick="toggleMarinas()">[ МАРИНЫ ]</button>
+    <button class="map-vbtn" id="mvbtn-track" onclick="toggleTracking()">[ ТРЕК ]</button>
   </div>
   <button class="map-expand-btn" onclick="openFullscreen('sea')">[ РАЗВЕРНУТЬ ]</button>
   <div id="map"></div>
+</div>
+
+<!-- TRACK CONTROLS -->
+<div class="track-bar" id="track-bar" style="display:none">
+  <div class="track-info">
+    <span class="track-stat">ТОЧЕК: <b id="trk-pts">0</b></span>
+    <span class="track-stat">ДИСТ: <b id="trk-dist">0.0 км</b></span>
+    <span class="track-stat">ВРЕМЯ: <b id="trk-time">00:00</b></span>
+  </div>
+  <div class="track-btns">
+    <button class="trk-btn" onclick="clearTrack()">[ СБРОС ]</button>
+    <button class="trk-btn" onclick="exportGPX()">[ GPX ]</button>
+  </div>
 </div>
 
 <!-- FULLSCREEN OVERLAY -->
@@ -585,6 +700,11 @@ body::after{
 </div>
 
 <!-- COORDBAR -->
+<div class="sos-line">
+  <span class="sos-line-label">ЭКСТРЕННЫЙ ВЫЗОВ</span>
+  <a id="sos-link" href="tel:112" class="sos-line-num">112</a>
+  <span class="sos-line-region" id="sos-line-region"></span>
+</div>
 <div class="coordbar">
   <div>LAT <span id="c-lat">---.----</span></div>
   <div>LON <span id="c-lon">---.----</span></div>
@@ -608,7 +728,95 @@ function initMap(lat,lon){
   L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
   uMarker=L.circleMarker([lat,lon],{radius:6,color:'#fff',fillColor:'#fff',fillOpacity:1,weight:2})
     .addTo(map).bindPopup('<b>ВЫ ЗДЕСЬ</b>');
+  // desktop: right click
+  map.on('contextmenu', onMapLongPress);
+
+  // mobile: proper touch long-press
+  const mapContainer=map.getContainer();
+  let touchTimer=null;
+  let touchMoved=false;
+
+  mapContainer.addEventListener('touchstart', e=>{
+    touchMoved=false;
+    const touch=e.touches[0];
+    touchTimer=setTimeout(()=>{
+      if(!touchMoved){
+        // convert touch pixel coords to latlng
+        const rect=mapContainer.getBoundingClientRect();
+        const point=L.point(touch.clientX-rect.left, touch.clientY-rect.top);
+        const latlng=map.containerPointToLatLng(point);
+        onMapLongPress({latlng});
+        // haptic feedback
+        if(navigator.vibrate) navigator.vibrate(40);
+      }
+    },600);
+  },{passive:true});
+
+  mapContainer.addEventListener('touchmove', ()=>{
+    touchMoved=true;
+    clearTimeout(touchTimer);
+  },{passive:true});
+
+  mapContainer.addEventListener('touchend', ()=>{
+    clearTimeout(touchTimer);
+  },{passive:true});
 }
+
+function onMapLongPress(e){
+  const lat=e.latlng.lat, lon=e.latlng.lng;
+  // show loading popup first
+  const popup=L.popup({className:'dest-popup'})
+    .setLatLng(e.latlng)
+    .setContent(buildPopupHtml(lat,lon,'ЗАГРУЗКА...',''))
+    .openOn(map);
+  // reverse geocode for name
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=14`,
+    {headers:{'Accept-Language':'ru'}})
+    .then(r=>r.json())
+    .then(d=>{
+      const name=d.address
+        ?(d.address.marina||d.address.bay||d.address.water||
+          d.address.village||d.address.town||d.address.city||
+          d.address.suburb||d.address.county||'')
+        :'';
+      const region=d.address?(d.address.state||d.address.country||''):'';
+      popup.setContent(buildPopupHtml(lat,lon,name,region));
+    })
+    .catch(()=>{
+      popup.setContent(buildPopupHtml(lat,lon,'','' ));
+    });
+}
+
+function buildPopupHtml(lat,lon,name,region){
+  const coordStr=lat.toFixed(4)+', '+lon.toFixed(4);
+  const nameLine=name?`<div style="color:#fff;font-size:0.95em;margin-bottom:2px">${name}</div>`:'';
+  const regLine=region?`<div style="color:#909088;font-size:0.8em;margin-bottom:4px">${region}</div>`:'';
+  return `<div style="font-family:'Share Tech Mono',monospace;font-size:0.78em;color:#c8c8be;min-width:160px">
+    ${nameLine}${regLine}
+    <div style="color:#606058;margin-bottom:6px">${coordStr}</div>
+    <button onclick="confirmMapDest(${lat},${lon},'${(name||coordStr).replace(/'/g,'')}')"
+      style="background:transparent;border:1px solid #d4b85a;color:#d4b85a;
+             font-family:inherit;font-size:0.9em;padding:3px 0;cursor:pointer;
+             width:100%;letter-spacing:0.08em">
+      → НАЗНАЧИТЬ ТОЧКОЙ ВЫХОДА
+    </button>
+    <button onclick="map.closePopup()"
+      style="background:transparent;border:none;color:#484840;
+             font-family:inherit;font-size:0.8em;padding:2px 0;cursor:pointer;
+             width:100%;margin-top:2px;letter-spacing:0.06em">
+      ОТМЕНА
+    </button>
+  </div>`;
+}
+
+function confirmMapDest(lat,lon,name){
+  map.closePopup();
+  destLat=lat; destLon=lon;
+  const label=name||(lat.toFixed(4)+', '+lon.toFixed(4));
+  document.getElementById('dest-input').value=label;
+  applyDestination(label);
+}
+
 function updateMap(lat,lon){
   if(!map){initMap(lat,lon);return;}
   uMarker.setLatLng([lat,lon]);
@@ -733,7 +941,9 @@ function onPos(p){
     if(hdgEl) hdgEl.textContent=Math.round(hdg)+'° '+dirs[Math.round(hdg/45)%8];
   }
 
+  recordTrackPoint(uLat,uLon);
   updateNavStrip();
+  updateSafety();
   setSt('ГЕО ОК · '+uLat.toFixed(3)+'/'+uLon.toFixed(3));
   fetchAll();
 }
@@ -749,6 +959,353 @@ let state={windMs:null,waveM:null,tideFrac:null,omenCode:null,moonFrac:null,pres
 /* ── FETCH ALL ── */
 function fetchAll(){fetchNow();fetchForecast();}
 
+
+
+
+/* ── TRACK RECORDING ── */
+let trackPoints=[];
+let trackLine=null;
+let trackActive=false;
+let trackStartTime=null;
+let trackTimerInterval=null;
+let trackTotalDist=0;
+
+function toggleTracking(){
+  const btn=document.getElementById('mvbtn-track');
+  const bar=document.getElementById('track-bar');
+  if(!trackActive){
+    // start
+    trackActive=true;
+    trackStartTime=Date.now();
+    btn.textContent='[ ● ЗАПИСЬ ]';
+    btn.classList.add('recording');
+    bar.style.display='flex';
+    trackTimerInterval=setInterval(updateTrackTimer,1000);
+    // try restore from localStorage
+    setSt('ЗАПИСЬ ТРЕКА НАЧАТА');
+  } else {
+    // pause
+    trackActive=false;
+    btn.textContent='[ ТРЕК ]';
+    btn.classList.remove('recording');
+    clearInterval(trackTimerInterval);
+    setSt('ЗАПИСЬ ТРЕКА ОСТАНОВЛЕНА · '+trackPoints.length+' ТОЧЕК');
+  }
+}
+
+function recordTrackPoint(lat,lon){
+  if(!trackActive)return;
+  const now=Date.now();
+  // min 5m between points to avoid noise
+  if(trackPoints.length>0){
+    const last=trackPoints[trackPoints.length-1];
+    const d=calcDist(last.lat,last.lon,lat,lon)*1000; // meters
+    if(d<5)return;
+    trackTotalDist+=d/1000;
+  }
+  trackPoints.push({lat,lon,ts:now});
+  updateTrackLine();
+  updateTrackStats();
+  // save to localStorage
+  try{localStorage.setItem('ovr_track',JSON.stringify({pts:trackPoints,dist:trackTotalDist,start:trackStartTime}));}catch(e){}
+}
+
+function updateTrackLine(){
+  if(!map||trackPoints.length<2)return;
+  const latlngs=trackPoints.map(p=>[p.lat,p.lon]);
+  if(trackLine){trackLine.setLatLngs(latlngs);}
+  else{
+    trackLine=L.polyline(latlngs,{color:'#d4b85a',weight:2,opacity:0.85}).addTo(map);
+  }
+  // also on fs map
+  if(fsMap){
+    if(window.fsTrackLine){window.fsTrackLine.setLatLngs(latlngs);}
+    else{window.fsTrackLine=L.polyline(latlngs,{color:'#d4b85a',weight:2,opacity:0.85}).addTo(fsMap);}
+  }
+}
+
+function updateTrackStats(){
+  document.getElementById('trk-pts').textContent=trackPoints.length;
+  document.getElementById('trk-dist').textContent=trackTotalDist.toFixed(2)+' км';
+}
+
+function updateTrackTimer(){
+  if(!trackStartTime)return;
+  const elapsed=Math.floor((Date.now()-trackStartTime)/1000);
+  const h=Math.floor(elapsed/3600),m=Math.floor((elapsed%3600)/60),s=elapsed%60;
+  document.getElementById('trk-time').textContent=
+    (h>0?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function clearTrack(){
+  trackPoints=[];trackTotalDist=0;
+  if(trackLine){trackLine.remove();trackLine=null;}
+  if(window.fsTrackLine){window.fsTrackLine.remove();window.fsTrackLine=null;}
+  document.getElementById('trk-pts').textContent='0';
+  document.getElementById('trk-dist').textContent='0.0 км';
+  document.getElementById('trk-time').textContent='00:00';
+  try{localStorage.removeItem('ovr_track');}catch(e){}
+  setSt('ТРЕК СБРОШЕН');
+}
+
+function exportGPX(){
+  if(!trackPoints.length){setSt('ТРЕК ПУСТОЙ');return;}
+  const ts=new Date(trackStartTime||Date.now()).toISOString();
+  let gpx=`<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="OVR·SEA" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>OVR-SEA-TRACK-${ts.slice(0,10)}</name>
+    <trkseg>
+`;
+  trackPoints.forEach(p=>{
+    gpx+=`      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}">
+        <time>${new Date(p.ts).toISOString()}</time>
+      </trkpt>
+`;
+  });
+  gpx+=`    </trkseg>
+  </trk>
+</gpx>`;
+  const blob=new Blob([gpx],{type:'application/gpx+xml'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='ovr-sea-'+ts.slice(0,10)+'.gpx';
+  a.click();URL.revokeObjectURL(url);
+  setSt('GPX ЭКСПОРТИРОВАН · '+trackPoints.length+' ТОЧЕК');
+}
+
+// restore track from localStorage on load
+function restoreTrack(){
+  try{
+    const raw=localStorage.getItem('ovr_track');
+    if(!raw)return;
+    const saved=JSON.parse(raw);
+    if(saved.pts&&saved.pts.length>0){
+      trackPoints=saved.pts;
+      trackTotalDist=saved.dist||0;
+      trackStartTime=saved.start||Date.now();
+      document.getElementById('track-bar').style.display='flex';
+      updateTrackStats();
+      updateTrackLine();
+      setSt('ТРЕК ВОССТАНОВЛЕН · '+trackPoints.length+' ТОЧЕК');
+    }
+  }catch(e){}
+}
+
+
+/* ── SAFETY ── */
+
+// Regional emergency numbers by rough lat/lon
+function getSosNumber(lat,lon){
+  if(!lat||!lon)return{num:'112',name:'',label:'112'};
+  // Russia
+  if(lat>41&&lat<82&&lon>19&&lon<190)
+    return{num:'112',name:'МЧС РОССИЯ',label:'112 · МЧС'};
+  // Finland
+  if(lat>59&&lat<70&&lon>19&&lon<32)
+    return{num:'112',name:'FINLAND',label:'112'};
+  // Norway
+  if(lat>57&&lat<72&&lon>4&&lon<32)
+    return{num:'120',name:'REDNINGSSELSKAPET',label:'120 · НОРВЕГИЯ'};
+  // Sweden
+  if(lat>55&&lat<70&&lon>10&&lon<25)
+    return{num:'112',name:'SJÖRÄDDNING',label:'112 · ШВЕЦИЯ'};
+  // Estonia/Latvia/Lithuania
+  if(lat>53&&lat<60&&lon>20&&lon<28)
+    return{num:'112',name:'',label:'112'};
+  // Turkey
+  if(lat>36&&lat<42&&lon>26&&lon<44)
+    return{num:'158',name:'SAHİL GÜVENLİK',label:'158 · БЕРЕГ ОХРАНА'};
+  // Default international
+  return{num:'112',name:'',label:'112'};
+}
+
+function updateSafety(){
+  if(!uLat||!uLon)return;
+
+  // SOS number by region
+  const sos=getSosNumber(uLat,uLon);
+  const sosLink=document.getElementById('sos-link');
+  const sosReg=document.getElementById('sos-line-region');
+  if(sosLink){sosLink.href='tel:'+sos.num;sosLink.textContent=sos.label;}
+  if(sosReg) sosReg.textContent=sos.name;
+
+  // Shore distance via Nominatim reverse — check if we're near water
+  fetchShoreDist(uLat,uLon);
+
+  // Water temp safety
+  const wtEl=document.getElementById('water-temp');
+  const wt=wtEl?parseInt(wtEl.textContent):null;
+  if(wt!=null&&!isNaN(wt)){
+    let survival,clr;
+    if(wt>=20){survival='НОРМА';clr='var(--good)';}
+    else if(wt>=15){survival='ЧАСЫ';clr='var(--fg)';}
+    else if(wt>=10){survival='1-2 ЧАС';clr='var(--warn)';}
+    else if(wt>=5){survival='30-90 МИН';clr='var(--bad)';}
+    else{survival='< 30 МИН';clr='var(--bad)';}
+    // sticky
+    const ssW=document.getElementById('ss-water');
+    const ssS=document.getElementById('ss-survival');
+    if(ssW){ssW.textContent=wt+'°C';ssW.style.color=clr;}
+    if(ssS){ssS.textContent=survival;ssS.style.color=clr;}
+  }
+
+  // Visibility — mirror to sticky too
+  const visEl=document.getElementById('wx-vis');
+  const safeVisEl=document.getElementById('safety-vis');
+  if(visEl&&safeVisEl){
+    safeVisEl.textContent=visEl.textContent;
+    safeVisEl.style.color=visEl.style.color||'var(--fg)';
+  }
+  const ssVis=document.getElementById('ss-vis');
+  if(visEl&&ssVis){
+    ssVis.textContent=visEl.textContent;
+    ssVis.style.color=visEl.style.color||'var(--fg)';
+  }
+
+  // Build alert string
+  renderSafetyAlert(wt);
+}
+
+async function fetchShoreDist(lat,lon){
+  const el=document.getElementById('shore-dist');
+  if(!el)return;
+  try{
+    // Use Nominatim to find nearest coastline point via reverse geocode
+    const r=await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      {headers:{'Accept-Language':'ru'}}
+    );
+    const d=await r.json();
+    // If address contains sea/ocean/bay — we're on water
+    const addr=JSON.stringify(d.address||'').toLowerCase();
+    const onWater=addr.includes('sea')||addr.includes('ocean')||
+                  addr.includes('bay')||addr.includes('gulf')||
+                  addr.includes('море')||addr.includes('залив')||
+                  addr.includes('озеро')||addr.includes('lake');
+
+    if(onWater){
+      // Find nearest land via slightly offset points — simplified: show "В ВОДЕ"
+      el.textContent='НА ВОДЕ';
+      el.style.color='var(--warn)';
+    } else {
+      // On land or near coast — compute distance from display name if available
+      el.textContent='У БЕРЕГА';
+      el.style.color='var(--good)';
+    }
+    // More precise: use overpass to find nearest coastline node
+    fetchCoastDist(lat,lon);
+  }catch(e){el.textContent='---';}
+}
+
+async function fetchCoastDist(lat,lon){
+  const el=document.getElementById('shore-dist');
+  try{
+    const d=0.5; // 0.5 degree radius ~ 50km
+    const query=`[out:json][timeout:8];
+(
+  way["natural"="coastline"](${lat-d},${lon-d},${lat+d},${lon+d});
+);out center 5;`;
+    const mirrors=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter'];
+    let r=null;
+    for(const m of mirrors){
+      try{r=await fetch(m+'?data='+encodeURIComponent(query));if(r.ok)break;}catch(e){}
+    }
+    if(!r||!r.ok)return;
+    const data=await r.json();
+    const els=data.elements||[];
+    if(!els.length)return;
+    // find nearest center point
+    let minD=Infinity;
+    els.forEach(e=>{
+      if(e.center){
+        const d=calcDist(lat,lon,e.center.lat,e.center.lon);
+        if(d<minD)minD=d;
+      }
+    });
+    if(minD<Infinity&&el){
+      el.textContent=minD<1?(minD*1000).toFixed(0)+' м':minD.toFixed(1)+' км';
+      el.style.color=minD<0.5?'var(--bad)':minD<2?'var(--warn)':'var(--fg)';
+    }
+  }catch(e){}
+}
+
+function renderSafetyAlert(waterTemp){
+  const alertEl=document.getElementById('safety-alert');
+  if(!alertEl)return;
+  const alerts=[];
+
+  // cold water
+  if(waterTemp!=null&&waterTemp<10)
+    alerts.push({txt:'ХОЛОДНАЯ ВОДА · НАДЕТЬ ГИДРОКОСТЮМ',cls:'alert-bad'});
+  else if(waterTemp!=null&&waterTemp<15)
+    alerts.push({txt:'ПРОХЛАДНАЯ ВОДА · РЕКОМЕНДОВАН ГИДРОКОСТЮМ',cls:'alert-warn'});
+
+  // wind danger
+  const vv=VESSELS[currentVessel];
+  if(state.windMs!=null&&state.windMs>vv.windWarn*1.5)
+    alerts.push({txt:'ОПАСНЫЙ ВЕТЕР ДЛЯ '+VESSELS[currentVessel].name.toUpperCase(),cls:'alert-bad'});
+
+  // pressure drop
+  if(state.pressDelta!=null&&state.pressDelta<-2)
+    alerts.push({txt:'РЕЗКОЕ ПАДЕНИЕ ДАВЛЕНИЯ · ШТОРМ ПРИБЛИЖАЕТСЯ',cls:'alert-bad'});
+
+  // visibility
+  const visEl=document.getElementById('wx-vis');
+  if(visEl){
+    const visKm=parseFloat(visEl.textContent);
+    if(visKm<1) alerts.push({txt:'ТУМАН · ВЫХОД ЗАПРЕЩЁН',cls:'alert-bad'});
+    else if(visKm<5) alerts.push({txt:'ПЛОХАЯ ВИДИМОСТЬ · СОБЛЮДАТЬ ОСТОРОЖНОСТЬ',cls:'alert-warn'});
+  }
+
+  // mirror to sticky
+  const stickyAlert=document.getElementById('sticky-alert');
+  if(!alerts.length){
+    alertEl.style.display='none';
+    if(stickyAlert) stickyAlert.style.display='none';
+    return;
+  }
+  if(stickyAlert){
+    stickyAlert.style.display='block';
+    stickyAlert.className='sticky-alert'+(alerts[0].cls==='alert-warn'?' warn':'');
+    stickyAlert.textContent='⚠ '+alerts[0].txt;
+  }
+  alertEl.style.display='block';
+  alertEl.className='safety-alert '+alerts[0].cls;
+  alertEl.innerHTML=alerts.map(a=>'⚠ '+a.txt).join('<br>');
+}
+
+/* ── TIDE NEXT TIMES (from moon phase sinusoid) ── */
+function renderTideChart(){
+  const now=new Date();
+  const syno=29.53058867;
+  const known=new Date('2000-01-06T18:14:00Z');
+  let age=((((now-known)/86400000)%syno)+syno)%syno;
+  const frac=age/syno;
+  const tidalPeriodH=12.42;
+  const phaseOffset=frac*24;
+  const startH=now.getHours();
+
+  // scan next 14 hours for nearest high and low
+  let nextHigh=null,nextLow=null;
+  let prevLevel=null;
+  for(let i=0;i<=14;i++){
+    const h=(startH+i)%24;
+    const t=h+phaseOffset;
+    const level=Math.sin((t/tidalPeriodH)*2*Math.PI);
+    if(prevLevel!==null){
+      if(level<prevLevel&&nextHigh===null) nextHigh=(startH+i-1)%24;
+      if(level>prevLevel&&nextLow===null)  nextLow=(startH+i-1)%24;
+    }
+    prevLevel=level;
+    if(nextHigh!==null&&nextLow!==null)break;
+  }
+  const fmt=h=>String(h).padStart(2,'0')+':00';
+  const highEl=document.getElementById('tide-next-high');
+  const lowEl=document.getElementById('tide-next-low');
+  if(highEl) highEl.textContent=nextHigh!==null?fmt(nextHigh):'--:--';
+  if(lowEl)  lowEl.textContent=nextLow!==null?fmt(nextLow):'--:--';
+}
 
 /* ── NAV STRIP ── */
 function updateNavStrip(){
@@ -798,27 +1355,31 @@ function calcBearing(lat1,lon1,lat2,lon2){
 /* ── SUN RISE/SET (Meeus algorithm) ── */
 function calcSunTimes(lat,lon){
   const now=new Date();
-  const JD=Math.floor(now/86400000)+2440587.5;
+  const tzOffsetMs=now.getTimezoneOffset()*-60000;
+  const dayStart=new Date(now);dayStart.setHours(0,0,0,0);
+  const JD=Math.floor(dayStart/86400000)+2440587.5;
   const n=JD-2451545.0;
-  const L=(280.46+0.9856474*n)%360;
+  const L=((280.46+0.9856474*n)%360+360)%360;
   const g=((357.528+0.9856003*n)%360)*Math.PI/180;
   const lam=(L+1.915*Math.sin(g)+0.02*Math.sin(2*g))*Math.PI/180;
   const eps=23.439*Math.PI/180;
   const decl=Math.asin(Math.sin(eps)*Math.sin(lam));
   const latR=lat*Math.PI/180;
-  const cosH=( Math.sin(-0.8333*Math.PI/180)-Math.sin(latR)*Math.sin(decl) )
-              / (Math.cos(latR)*Math.cos(decl));
-  if(Math.abs(cosH)>1) return null; // midnight sun or polar night
+  const cosH=(Math.sin(-0.8333*Math.PI/180)-Math.sin(latR)*Math.sin(decl))
+             /(Math.cos(latR)*Math.cos(decl));
+  if(Math.abs(cosH)>1) return null;
   const H=Math.acos(cosH)*180/Math.PI;
-  const JDrise=2451545.0+(6-H/15-lon/15)/24;
-  const JDset =2451545.0+(6+H/15-lon/15)/24;
-  const toTime=jd=>{
-    const d=new Date((jd-2440587.5)*86400000);
-    return d.toTimeString().slice(0,5);
+  const noonUTC=(12-lon/15)/24;
+  const riseUTC=noonUTC-H/360;
+  const setUTC =noonUTC+H/360;
+  const toLocal=utcFrac=>{
+    const ms=dayStart.getTime()+utcFrac*86400000+tzOffsetMs;
+    return new Date(ms);
   };
-  const riseMs=(JDrise-2440587.5)*86400000;
-  const setMs =(JDset -2440587.5)*86400000;
-  return{rise:toTime(JDrise),set:toTime(JDset),riseMs,setMs};
+  const riseDate=toLocal(riseUTC);
+  const setDate =toLocal(setUTC);
+  const fmt=d=>d.toTimeString().slice(0,5);
+  return{rise:fmt(riseDate),set:fmt(setDate),riseMs:riseDate.getTime(),setMs:setDate.getTime()};
 }
 
 function renderSun(lat,lon){
@@ -948,6 +1509,7 @@ async function fetchNow(){
 
     renderИтого();
     updateStickySummary();
+    updateSafety();
     saveSnapshot();
     setSt('ДАННЫЕ ОБНОВЛЕНЫ · '+new Date().toTimeString().slice(0,5));
   }catch(e){setSt('ОШИБКА ДАННЫХ · '+e.message);}
@@ -998,8 +1560,7 @@ function initMoon(){
   const nearSyzygy=(frac<0.1||frac>0.9||(frac>0.4&&frac<0.6));
   const nearQuad=(frac>0.2&&frac<0.3)||(frac>0.7&&frac<0.8);
   const tideType=nearSyzygy?'СИЗИГИЙНЫЙ':nearQuad?'КВАДРАТУРНЫЙ':'СРЕДНИЙ';
-  document.getElementById('moon-tide').textContent=tideDir;
-  document.getElementById('moon-tide-type').textContent=tideType;
+  renderTideChart();
 }
 
 function drawMoon(frac){
@@ -1218,24 +1779,24 @@ async function fetchForecast(){
     const {lat:fLat2,lon:fLon2}=getCoords();
     const wu=`https://api.open-meteo.com/v1/forecast?latitude=${fLat2}&longitude=${fLon2}`+
       `&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,`+
-      `wind_direction_10m_dominant,precipitation_sum&wind_speed_unit=ms&timezone=auto&forecast_days=3`;
+      `wind_direction_10m_dominant,precipitation_sum&wind_speed_unit=ms&timezone=auto&forecast_days=4`;
     const wd=await(await fetch(wu)).json();
     let md=null;
     try{
       md=await(await fetch(
         `https://marine-api.open-meteo.com/v1/marine?latitude=${fLat2}&longitude=${fLon2}`+
-        `&daily=wave_height_max&timezone=auto&forecast_days=3`
+        `&daily=wave_height_max&timezone=auto&forecast_days=4`
       )).json();
     }catch(e){}
 
     const grid=document.getElementById('fc-grid');
     grid.innerHTML='';
     const ruDay=i=>{
-      if(i===0)return'СЕГОДНЯ';if(i===1)return'ЗАВТРА';
+      if(i===1)return'ЗАВТРА';
       const d=new Date();d.setDate(d.getDate()+i);
       return['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'][d.getDay()];
     };
-    for(let i=0;i<3;i++){
+    for(let i=1;i<=3;i++){
       const tMax=Math.round(wd.daily.temperature_2m_max[i]);
       const tMin=Math.round(wd.daily.temperature_2m_min[i]);
       const wMax=parseFloat(wd.daily.wind_speed_10m_max[i].toFixed(1));
@@ -1415,8 +1976,10 @@ try{
   }
 }catch(e){}
 initGeo();
+restoreTrack();
 setInterval(()=>{if(uLat)fetchAll();},600000);
 setInterval(()=>{if(uLat)renderSun(uLat,uLon);},60000);
+
 
 /* ── FULLSCREEN MAP ── */
 let fsMap=null, fsMapInited=false, currentTab='sea';
