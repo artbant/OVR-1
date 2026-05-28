@@ -137,10 +137,10 @@ body::after{
 }
 .combined-chart{display:flex;flex-direction:column}
 .combined-итого{display:flex;flex-direction:column}
-.hourly-chart{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:3px}
+.hourly-chart{display:flex;flex-direction:column;gap:4px;margin-top:3px}
 .hcol{display:flex;flex-direction:column;gap:1px;border:1px solid var(--dim);padding:3px 5px}
 .hcol-time{font-size:0.65em;color:var(--fg2);letter-spacing:0.1em;border-bottom:1px solid var(--dim);padding-bottom:2px;margin-bottom:2px}
-.hcol-row{display:flex;justify-content:space-between;align-items:baseline}
+.hcol-row{display:flex;align-items:baseline;gap:4px}
 .hcol-k{font-size:0.6em;color:var(--fg3)}
 .hcol-v{font-size:0.78em}
 .hcol-bar{height:4px;margin-top:2px;background:var(--dim)}
@@ -800,6 +800,7 @@ function initMap(lat,lon){
     .addTo(map).bindPopup('<b>ВЫ ЗДЕСЬ</b>');
   // desktop: right click
   map.on('contextmenu', onMapLongPress);
+  map.on('click',()=>{if(suppressNextMapClick){suppressNextMapClick=false;return false;}});
 
   // mobile: proper touch long-press
   const mapContainer=map.getContainer();
@@ -816,8 +817,10 @@ function initMap(lat,lon){
         const point=L.point(touch.clientX-rect.left, touch.clientY-rect.top);
         const latlng=map.containerPointToLatLng(point);
         onMapLongPress({latlng});
-        // haptic feedback
         if(navigator.vibrate) navigator.vibrate(40);
+        // suppress next click/tap so popup doesn't immediately close
+        suppressNextMapClick=true;
+        setTimeout(()=>{suppressNextMapClick=false;},400);
       }
     },600);
   },{passive:true});
@@ -1039,6 +1042,7 @@ function fetchAll(){fetchNow();fetchForecast();}
 
 
 /* ── TRACK RECORDING ── */
+let suppressNextMapClick=false;
 let trackPoints=[];
 let trackLine=null;
 let trackActive=false;
@@ -1862,30 +1866,24 @@ function renderHourlyChart(){
     const ws=wind[i]!=null?parseFloat(wind[i].toFixed(1)):null;
     const wv=wave[i]!=null?parseFloat(wave[i].toFixed(1)):null;
 
-    let verdict,vCls;
     const wOk=ws==null||(ws<=v.windOk&&(wv==null||wv<=v.waveOk));
-    const wWarn=ws==null||ws<=v.windWarn;
-    const wvWarn=wv==null||wv<=v.waveWarn;
+    const wWarn=(ws==null||ws<=v.windWarn)&&(wv==null||wv<=v.waveWarn);
+    let verdict,vCls;
     if(wOk){verdict='ОК';vCls='var(--good)';}
-    else if(wWarn&&wvWarn){verdict='ОСТ';vCls='var(--warn)';}
+    else if(wWarn){verdict='ОСТ';vCls='var(--warn)';}
     else{verdict='НЕТ';vCls='var(--bad)';}
 
-    // wind bar width %
-    const windPct=ws!=null?Math.min(100,(ws/20)*100):0;
-    const windBarClr=ws==null?'var(--fg3)':ws<=v.windOk?'var(--good)':ws<=v.windWarn?'var(--warn)':'var(--bad)';
-    const wavePct=wv!=null?Math.min(100,(wv/3)*100):0;
-    const waveBarClr=wv==null?'var(--fg3)':wv<=v.waveOk?'var(--good)':wv<=v.waveWarn?'var(--warn)':'var(--bad)';
+    const windClr=ws==null?'var(--fg3)':ws<=v.windOk?'var(--good)':ws<=v.windWarn?'var(--warn)':'var(--bad)';
+    const waveClr=wv==null?'var(--fg3)':wv<=v.waveOk?'var(--good)':wv<=v.waveWarn?'var(--warn)':'var(--bad)';
 
-    const col=document.createElement('div');
-    col.className='hcol';
-    col.innerHTML=
-      '<div class="hcol-time">'+labels[idx]+' '+String(h).padStart(2,'0')+'ч</div>'+
-      '<div class="hcol-row"><span class="hcol-k">ВЕТЕР</span><span class="hcol-v" style="color:'+windBarClr+'">'+(ws!=null?ws+' м/с':'--')+'</span></div>'+
-      '<div class="hcol-bar"><div class="hcol-bar-fill" style="width:'+windPct+'%;background:'+windBarClr+'"></div></div>'+
-      '<div class="hcol-row"><span class="hcol-k">ВОЛНА</span><span class="hcol-v" style="color:'+waveBarClr+'">'+(wv!=null?wv+' м':'N/A')+'</span></div>'+
-      '<div class="hcol-bar"><div class="hcol-bar-fill" style="width:'+wavePct+'%;background:'+waveBarClr+'"></div></div>'+
-      '<div style="margin-top:3px;font-size:0.68em;border:1px solid '+vCls+';color:'+vCls+';padding:0 3px;display:inline-block">'+verdict+'</div>';
-    el.appendChild(col);
+    const row=document.createElement('div');
+    row.className='hcol';
+    row.innerHTML=
+      '<div class="hcol-time">'+labels[idx]+'&nbsp;'+String(h).padStart(2,'0')+'ч</div>'+
+      '<div class="hcol-row"><span class="hcol-k">~</span><span class="hcol-v" style="color:'+windClr+'">'+(ws!=null?ws+' м/с':'--')+'</span></div>'+
+      '<div class="hcol-row"><span class="hcol-k">^</span><span class="hcol-v" style="color:'+waveClr+'">'+(wv!=null?wv+' м':'—')+'</span></div>'+
+      '<div style="font-size:0.68em;border:1px solid '+vCls+';color:'+vCls+';padding:0 4px;white-space:nowrap">'+verdict+'</div>';
+    el.appendChild(row);
   });
 }
 
