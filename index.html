@@ -2148,6 +2148,7 @@ async function setDestination(){
   }
 
   // geocode via Nominatim
+  let geocodeName=null;
   try{
     const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(raw)}&format=json&limit=1`,
       {headers:{'Accept-Language':'ru'}});
@@ -2155,8 +2156,13 @@ async function setDestination(){
     if(!d.length){status.textContent='МЕСТО НЕ НАЙДЕНО';return;}
     destLat=parseFloat(d[0].lat);
     destLon=parseFloat(d[0].lon);
-    applyDestination(d[0].display_name.split(',')[0]);
-  }catch(e){status.textContent='ОШИБКА ПОИСКА';}
+    geocodeName=d[0].display_name.split(',')[0];
+  }catch(e){
+    status.textContent='ОШИБКА ГЕОКОДИНГА';
+    return;
+  }
+  // applyDestination is outside try/catch so its errors don't overwrite status
+  applyDestination(geocodeName||raw);
 }
 
 function applyDestination(name){
