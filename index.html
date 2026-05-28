@@ -32,6 +32,8 @@ body{
   font-size:var(--fs);line-height:1.45;
   overflow-y:auto;overflow-x:hidden;
   min-height:100dvh;padding:0;margin:0;
+  -webkit-user-select:none;
+  user-select:none;
 }
 body::after{
   content:'';position:fixed;inset:0;
@@ -225,6 +227,7 @@ body::after{
 
 /* DESTINATION */
 .dest-wrap{display:flex;gap:4px;align-items:center}
+.dest-input,.statusline,.coordbar span{-webkit-user-select:text;user-select:text}
 .dest-input{
   flex:1;background:transparent;border:1px solid var(--dim);
   color:var(--fg);font-family:'Share Tech Mono',monospace;
@@ -877,7 +880,9 @@ function buildPopupHtml(lat,lon,name,region){
 }
 
 function confirmMapDest(lat,lon,name){
-  map.closePopup();
+  // close popup on whichever map is open
+  if(map) map.closePopup();
+  if(fsMap) fsMap.closePopup();
   destLat=lat; destLon=lon;
   const label=name||(lat.toFixed(4)+', '+lon.toFixed(4));
   document.getElementById('dest-input').value=label;
@@ -2250,6 +2255,42 @@ function openFullscreen(tab){
       }).addTo(fsMap).bindPopup('<b>⚓ ТОЧКА ВЫХОДА</b>');
     }
   },120);
+
+  // attach long-press to fullscreen map (once)
+  if(!fsMapInited._touchBound){
+    fsMapInited._touchBound=true;
+    fsMap.on('contextmenu', onMapLongPress);
+    const fsCont=fsMap.getContainer();
+    let fsTouchTimer=null, fsTouchMoved=false;
+    fsCont.addEventListener('touchstart', e=>{
+      fsTouchMoved=false;
+      const touch=e.touches[0];
+      fsTouchTimer=setTimeout(()=>{
+        if(!fsTouchMoved){
+          const rect=fsCont.getBoundingClientRect();
+          const pt=L.point(touch.clientX-rect.left,touch.clientY-rect.top);
+          const ll=fsMap.containerPointToLatLng(pt);
+          // show popup on fsMap not mini map
+          const popup=L.popup({className:'dest-popup'})
+            .setLatLng(ll)
+            .setContent(buildPopupHtml(ll.lat,ll.lng,'ЗАГРУЗКА...',''))
+            .openOn(fsMap);
+          if(navigator.vibrate) navigator.vibrate(40);
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${ll.lat}&lon=${ll.lng}&format=json&zoom=14`,
+            {headers:{'Accept-Language':'ru'}})
+            .then(r=>r.json())
+            .then(d=>{
+              const addr=d.address||{};
+              const name=addr.marina||addr.bay||addr.water||addr.village||addr.town||addr.city||addr.suburb||addr.county||'';
+              const region=addr.state||addr.country||'';
+              popup.setContent(buildPopupHtml(ll.lat,ll.lng,name,region));
+            }).catch(()=>{});
+        }
+      },600);
+    },{passive:true});
+    fsCont.addEventListener('touchmove',()=>{fsTouchMoved=true;clearTimeout(fsTouchTimer);},{passive:true});
+    fsCont.addEventListener('touchend',()=>{clearTimeout(fsTouchTimer);},{passive:true});
+  }
 }
 
 function closeFullscreen(){
