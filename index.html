@@ -178,10 +178,10 @@ body::after{
 /* MAP */
 .row-map{position:relative;border:1px solid var(--dim);overflow:hidden;height:280px}
 #map{width:100%;height:100%}
-.map-label{
-  position:absolute;top:6px;left:6px;z-index:1000;
-  font-family:'Share Tech Mono',monospace;font-size:0.6em;color:var(--fg2);
-  background:rgba(0,0,0,0.8);padding:2px 5px;letter-spacing:0.1em;pointer-events:none;
+.map-hint{
+  position:absolute;bottom:6px;right:6px;z-index:1000;
+  font-family:'Share Tech Mono',monospace;font-size:0.55em;color:var(--fg3);
+  background:rgba(0,0,0,0.7);padding:2px 5px;letter-spacing:0.08em;pointer-events:none;
 }
 /* map legend */
 .map-legend{
@@ -255,6 +255,16 @@ body::after{
 }
 .map-vbtn:hover{border-color:var(--fg2);color:var(--fg)}
 .map-vbtn.active{border-color:var(--warn);color:var(--warn)}
+
+/* LOCATION TABS */
+.loc-tabs{display:flex;gap:5px;margin-bottom:-2px}
+.loc-tab{
+  background:transparent;border:1px solid var(--dim);
+  color:var(--fg3);font-family:'Share Tech Mono',monospace;
+  font-size:0.68em;padding:2px 9px;cursor:pointer;letter-spacing:0.1em;
+}
+.loc-tab.active{border-color:var(--warn);color:var(--warn)}
+.loc-tab:hover{border-color:var(--fg2);color:var(--fg2)}
 
 /* TRACK BAR */
 .track-bar{
@@ -386,6 +396,43 @@ body::after{
 }
 .alert-bad{color:var(--bad)}
 .alert-warn{color:var(--warn)}
+
+/* LOGBOOK */
+.logbook-block{border:1px solid var(--dim);padding:6px 8px}
+.logbook-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px}
+.logbook-btns{display:flex;gap:4px}
+.log-history{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.log-entry{
+  border:1px solid var(--dim);padding:4px 7px;
+  font-size:0.68em;line-height:1.6;
+}
+.log-entry-head{display:flex;justify-content:space-between;align-items:baseline;
+  color:var(--fg2);border-bottom:1px solid var(--dim);padding-bottom:2px;margin-bottom:3px}
+.log-entry-date{color:var(--acc);letter-spacing:0.05em}
+.log-entry-vessel{color:var(--fg3)}
+.log-entry-data{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 6px}
+.log-d-k{color:var(--fg3);font-size:0.9em}
+.log-d-v{color:var(--fg)}
+.log-entry-verdict{margin-top:3px;font-size:0.9em;letter-spacing:0.06em}
+.log-empty{color:var(--fg3);font-size:0.72em;padding:4px 0}
+.log-del{
+  background:transparent;border:none;color:var(--fg3);
+  font-family:inherit;font-size:0.85em;cursor:pointer;padding:0 3px;
+}
+.log-del:hover{color:var(--bad)}
+
+/* SHARE BAR */
+.share-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:4px 0;
+}
+.share-btn{
+  background:transparent;border:1px solid var(--dim);
+  color:var(--fg3);font-family:'Share Tech Mono',monospace;
+  font-size:0.65em;padding:2px 8px;cursor:pointer;letter-spacing:0.08em;
+}
+.share-btn:hover{border-color:var(--fg2);color:var(--fg)}
+.share-hint{font-size:0.6em;color:var(--fg3)}
 
 /* SOS LINE */
 .sos-line{
@@ -521,7 +568,7 @@ body::after{
     <div class="lbl">// ВОЛНЫ</div>
     <div class="card-big"><span id="wave-h">-.-</span><span class="card-unit">м</span></div>
     <div class="card-sub">ПЕРИОД <span id="wave-p">--</span> С</div>
-    <div class="card-sub2" id="wave-dir-txt">напр: ---</div>
+    <div class="card-sub2" id="wave-dir-txt">НАПРАВЛЕНИЕ ---</div>
   </div>
   <div class="card">
     <div class="lbl">// ПОГОДА</div>
@@ -534,6 +581,10 @@ body::after{
 </div>
 
 <!-- ROW 3: ОКНО + ИТОГО side by side -->
+<div class="loc-tabs" id="loc-tabs" style="display:none">
+  <button class="loc-tab active" id="ltab-me" onclick="setLocTab('me')">[ Я СЕЙЧАС ]</button>
+  <button class="loc-tab" id="ltab-dest" onclick="setLocTab('dest')">[ ТОЧКА ВЫХОДА ]</button>
+</div>
 <div class="row-combined">
   <!-- left: hourly chart -->
   <div class="combined-chart card">
@@ -586,7 +637,7 @@ body::after{
 </div>
 
 <!-- ROW 4: FORECAST -->
-<div class="row-fc">
+<div class="row-fc" id="row-fc">
   <div class="lbl">// ПРОГНОЗ — 3 ДНЯ</div>
   <div class="fc-grid" id="fc-grid">
     <div><div class="fc-day-name">ЗАГРУЗКА...</div></div>
@@ -652,7 +703,6 @@ body::after{
   </div>
 </div>
 <div class="row-map">
-  <div class="map-label" id="map-label">OPENSEA · ДОЛГИЙ ТАП — ТОЧКА ВЫХОДА</div>
   <div class="map-view-btns">
     <button class="map-vbtn active" id="mvbtn-me" onclick="mapViewMe()">[ Я ]</button>
     <button class="map-vbtn" id="mvbtn-dest" onclick="mapViewDest()" style="display:none">[ ВЫХОД ]</button>
@@ -661,6 +711,7 @@ body::after{
   </div>
   <button class="map-expand-btn" onclick="openFullscreen('sea')">[ РАЗВЕРНУТЬ ]</button>
   <div id="map"></div>
+  <div class="map-hint">ДОЛГИЙ ТАП · ТОЧКА ВЫХОДА</div>
 </div>
 
 <!-- TRACK CONTROLS -->
@@ -674,6 +725,18 @@ body::after{
     <button class="trk-btn" onclick="clearTrack()">[ СБРОС ]</button>
     <button class="trk-btn" onclick="exportGPX()">[ GPX ]</button>
   </div>
+</div>
+
+<!-- LOGBOOK -->
+<div class="logbook-block">
+  <div class="logbook-header">
+    <div class="lbl" style="margin-bottom:0">// ЛОГБУК ВЫХОДОВ</div>
+    <div class="logbook-btns">
+      <button class="trk-btn" onclick="saveLogEntry()">[ ЗАПИСАТЬ ВЫХОД ]</button>
+      <button class="trk-btn" onclick="toggleLogHistory()" id="log-history-btn">[ ИСТОРИЯ ]</button>
+    </div>
+  </div>
+  <div class="log-history" id="log-history" style="display:none"></div>
 </div>
 
 <!-- FULLSCREEN OVERLAY -->
@@ -705,11 +768,15 @@ body::after{
   <a id="sos-link" href="tel:112" class="sos-line-num">112</a>
   <span class="sos-line-region" id="sos-line-region"></span>
 </div>
+<div class="share-bar">
+  <button class="share-btn" onclick="shareLocation()" id="share-btn">[ ПОДЕЛИТЬСЯ МЕСТОМ ]</button>
+  <span class="share-hint" id="share-hint"></span>
+</div>
 <div class="coordbar">
   <div>LAT <span id="c-lat">---.----</span></div>
   <div>LON <span id="c-lon">---.----</span></div>
-  <div>ВЕТЕР <span id="c-wind">-- м/с</span></div>
-  <div>ВОЛНА <span id="c-wave">-.-м</span></div>
+  <div>ВЕТЕР <span id="c-wind">--</span> М/С</div>
+  <div>ВОЛНА <span id="c-wave">-.-</span> М</div>
 </div>
 <div class="statusline" id="statusline">ИНИЦИАЛИЗАЦИЯ...<span class="cursor"></span></div>
 
@@ -865,16 +932,20 @@ async function toggleMarinas(){
     // try CORS-friendly mirrors in order
     const mirrors=[
       'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass.private.coffee/api/interpreter',
       'https://overpass-api.de/api/interpreter',
     ];
     let r=null;
     for(const mirror of mirrors){
       try{
-        r=await fetch(mirror+'?data='+encodeURIComponent(query));
+        const ctrl=new AbortController();
+        const tid=setTimeout(()=>ctrl.abort(),8000);
+        r=await fetch(mirror+'?data='+encodeURIComponent(query),{signal:ctrl.signal});
+        clearTimeout(tid);
         if(r.ok)break;
       }catch(e){r=null;}
     }
-    if(!r||!r.ok)throw new Error('все зеркала недоступны');
+    if(!r||!r.ok)throw new Error('OVERPASS НЕДОСТУПЕН');
     const d=await r.json();
     const els=d.elements||[];
     if(!els.length){setSt('МАРИНЫ: НЕ НАЙДЕНО В ЗОНЕ');btn.textContent='[ МАРИНЫ ]';return;}
@@ -1093,6 +1164,128 @@ function restoreTrack(){
 }
 
 
+
+
+/* ── LOGBOOK ── */
+function saveLogEntry(){
+  const entry={
+    id:Date.now(),
+    ts:new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    vessel:VESSELS[currentVessel]?.name||currentVessel,
+    lat:uLat?uLat.toFixed(4):'--',
+    lon:uLon?uLon.toFixed(4):'--',
+    dest:document.getElementById('dest-status')?.textContent||'',
+    wind:document.getElementById('wind-spd')?.textContent+' м/с '+(document.getElementById('wind-dir')?.textContent||''),
+    wave:document.getElementById('wave-h')?.textContent+' м',
+    temp:document.getElementById('wx-temp')?.textContent+'°C',
+    water:document.getElementById('water-temp')?.textContent+'°C',
+    vis:document.getElementById('wx-vis')?.textContent,
+    verdict:document.getElementById('итого-verdict')?.textContent||'',
+    verdictCls:document.getElementById('итого-verdict')?.className||'',
+    trackDist:document.getElementById('trk-dist')?.textContent||'0',
+    trackPts:trackPoints.length,
+  };
+
+  let log=[];
+  try{log=JSON.parse(localStorage.getItem('ovr_log')||'[]');}catch(e){}
+  log.unshift(entry);
+  if(log.length>50) log=log.slice(0,50); // keep last 50
+  try{localStorage.setItem('ovr_log',JSON.stringify(log));}catch(e){}
+
+  setSt('ВЫХОД ЗАПИСАН · '+entry.ts);
+  if(navigator.vibrate) navigator.vibrate([50,30,50]);
+
+  // refresh history if open
+  const hist=document.getElementById('log-history');
+  if(hist&&hist.style.display!=='none') renderLogHistory();
+}
+
+function toggleLogHistory(){
+  const hist=document.getElementById('log-history');
+  const btn=document.getElementById('log-history-btn');
+  if(!hist)return;
+  if(hist.style.display==='none'){
+    hist.style.display='flex';
+    btn.textContent='[ СКРЫТЬ ]';
+    renderLogHistory();
+  } else {
+    hist.style.display='none';
+    btn.textContent='[ ИСТОРИЯ ]';
+  }
+}
+
+function renderLogHistory(){
+  const hist=document.getElementById('log-history');
+  if(!hist)return;
+  let log=[];
+  try{log=JSON.parse(localStorage.getItem('ovr_log')||'[]');}catch(e){}
+  if(!log.length){
+    hist.innerHTML='<div class="log-empty">ВЫХОДОВ НЕТ · НАЖМИТЕ [ ЗАПИСАТЬ ВЫХОД ]</div>';
+    return;
+  }
+  hist.innerHTML='';
+  log.forEach(e=>{
+    const vCls=e.verdictCls?.includes('nogo')?'nogo':
+               e.verdictCls?.includes('caution')?'caution':'go';
+    const destLine=e.dest?`<div><span class="log-d-k">ЦЕЛЬ</span> <span class="log-d-v">${e.dest.replace('→ ','')}</span></div>`:'';
+    const div=document.createElement('div');
+    div.className='log-entry';
+    div.innerHTML=`
+      <div class="log-entry-head">
+        <span class="log-entry-date">${e.ts}</span>
+        <span class="log-entry-vessel">${e.vessel}</span>
+        <button class="log-del" onclick="deleteLogEntry(${e.id})">✕</button>
+      </div>
+      <div class="log-entry-data">
+        <div><span class="log-d-k">ВЕТЕР</span> <span class="log-d-v">${e.wind}</span></div>
+        <div><span class="log-d-k">ВОЛНА</span> <span class="log-d-v">${e.wave}</span></div>
+        <div><span class="log-d-k">ВОЗДУХ</span> <span class="log-d-v">${e.temp}</span></div>
+        <div><span class="log-d-k">ВОДА</span> <span class="log-d-v">${e.water}</span></div>
+        <div><span class="log-d-k">ВИДИМ</span> <span class="log-d-v">${e.vis||'--'}</span></div>
+        <div><span class="log-d-k">ТРЕК</span> <span class="log-d-v">${e.trackDist}</span></div>
+        ${destLine}
+        <div><span class="log-d-k">ПОЗИЦИЯ</span> <span class="log-d-v">${e.lat} / ${e.lon}</span></div>
+      </div>
+      <div class="log-entry-verdict ${vCls}">${e.verdict||'---'}</div>
+    `;
+    hist.appendChild(div);
+  });
+}
+
+function deleteLogEntry(id){
+  let log=[];
+  try{log=JSON.parse(localStorage.getItem('ovr_log')||'[]');}catch(e){}
+  log=log.filter(e=>e.id!==id);
+  try{localStorage.setItem('ovr_log',JSON.stringify(log));}catch(e){}
+  renderLogHistory();
+}
+
+/* ── SHARE LOCATION ── */
+async function shareLocation(){
+  if(!uLat||!uLon){setSt('НЕТ КООРДИНАТ ДЛЯ ОТПРАВКИ');return;}
+  const lat=uLat.toFixed(5),lon=uLon.toFixed(5);
+  const mapsUrl=`https://maps.google.com/maps?q=${lat},${lon}`;
+  const text=`📍 Я нахожусь здесь: ${mapsUrl}\nКоординаты: ${lat}, ${lon}`;
+  const hint=document.getElementById('share-hint');
+
+  // try native share API first (mobile)
+  if(navigator.share){
+    try{
+      await navigator.share({title:'OVR·SEA · Моё местоположение',text,url:mapsUrl});
+      if(hint) hint.textContent='ОТПРАВЛЕНО';
+      return;
+    }catch(e){}
+  }
+  // fallback: copy to clipboard
+  try{
+    await navigator.clipboard.writeText(text);
+    if(hint){hint.textContent='СКОПИРОВАНО В БУФЕР';setTimeout(()=>{hint.textContent='';},3000);}
+  }catch(e){
+    // last resort: show the link
+    if(hint){hint.textContent=mapsUrl;hint.style.userSelect='all';}
+  }
+}
+
 /* ── SAFETY ── */
 
 // Regional emergency numbers by rough lat/lon
@@ -1206,10 +1399,15 @@ async function fetchCoastDist(lat,lon){
 (
   way["natural"="coastline"](${lat-d},${lon-d},${lat+d},${lon+d});
 );out center 5;`;
-    const mirrors=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter'];
+    const mirrors=['https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass-api.de/api/interpreter'];
     let r=null;
     for(const m of mirrors){
-      try{r=await fetch(m+'?data='+encodeURIComponent(query));if(r.ok)break;}catch(e){}
+      try{
+        const ctrl=new AbortController();
+        setTimeout(()=>ctrl.abort(),6000);
+        r=await fetch(m+'?data='+encodeURIComponent(query),{signal:ctrl.signal});
+        if(r.ok)break;
+      }catch(e){}
     }
     if(!r||!r.ok)return;
     const data=await r.json();
@@ -1483,7 +1681,7 @@ async function fetchNow(){
           document.getElementById('wave-dir-txt').textContent='не мор. зона';
         }
         if(mc.wave_period) document.getElementById('wave-p').textContent=Math.round(mc.wave_period)+'с';
-        if(mc.wave_direction!=null) document.getElementById('wave-dir-txt').textContent='напр: '+degToDir16(mc.wave_direction);
+        if(mc.wave_direction!=null) document.getElementById('wave-dir-txt').textContent='НАПРАВЛЕНИЕ '+degToDir16(mc.wave_direction);
         // water temperature
         if(mc.sea_surface_temperature!=null){
           const wt=Math.round(mc.sea_surface_temperature);
@@ -1502,8 +1700,16 @@ async function fetchNow(){
           if(survEl){survEl.textContent='выживаемость: '+survival;survEl.style.color=safeClr;}
         }
       } else {
-        document.getElementById('wave-h').textContent='N/A';
-        document.getElementById('wave-dir-txt').textContent='не мор. зона';
+        // inland fallback: estimate wave from wind via Beaufort/fetch formula
+        if(state.windMs!=null){
+          const wEst=estimateWave(state.windMs);
+          document.getElementById('wave-h').textContent=wEst.toFixed(1)+'~';
+          document.getElementById('wave-dir-txt').textContent='РАСЧЁТНАЯ (РАЗГОН)';
+          state.waveM=wEst;
+        } else {
+          document.getElementById('wave-h').textContent='N/A';
+          document.getElementById('wave-dir-txt').textContent='НЕТ МОРСКИХ ДАННЫХ';
+        }
       }
     }catch(e){}
 
@@ -1513,6 +1719,15 @@ async function fetchNow(){
     saveSnapshot();
     setSt('ДАННЫЕ ОБНОВЛЕНЫ · '+new Date().toTimeString().slice(0,5));
   }catch(e){setSt('ОШИБКА ДАННЫХ · '+e.message);}
+}
+
+/* ── WAVE ESTIMATE (fetch formula for inland) ── */
+function estimateWave(windMs){
+  // Simplified SMB formula: H = 0.0248 * U^2 (deep water, unlimited fetch)
+  // For inland/limited fetch assume ~10km fetch → H = 0.0016 * U^1.5 * F^0.5
+  const F=10000; // 10km fetch in meters
+  const H=0.0016*Math.pow(windMs,1.5)*Math.pow(F,0.5)/9.81;
+  return Math.min(H, windMs*0.08); // cap at rough estimate
 }
 
 /* ── OMEN CODE ── */
@@ -1866,6 +2081,32 @@ function degToDir8(d){
   return['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'][Math.round(d/45)%8];
 }
 
+
+/* ── LOCATION TAB (me vs dest for окно+прогноз) ── */
+let activeLocTab='me'; // 'me' or 'dest'
+
+function setLocTab(tab){
+  activeLocTab=tab;
+  document.getElementById('ltab-me').classList.toggle('active',tab==='me');
+  document.getElementById('ltab-dest').classList.toggle('active',tab==='dest');
+  fetchAll();
+}
+
+// show/hide tabs when dest is set/cleared
+function updateLocTabs(){
+  const tabs=document.getElementById('loc-tabs');
+  if(!tabs)return;
+  if(destLat&&destLon){tabs.style.display='flex';}
+  else{tabs.style.display='none';activeLocTab='me';}
+}
+
+// Override getCoords to respect active tab
+function getCoords(){
+  if(activeLocTab==='dest'&&destLat&&destLon)
+    return{lat:destLat,lon:destLon};
+  return{lat:uLat||destLat,lon:uLon||destLon};
+}
+
 /* ── VESSEL THRESHOLDS ── */
 const VESSELS={
   sup:    {name:'SUP',          windOk:4,  windWarn:6,  waveOk:0.3, waveWarn:0.6},
@@ -1937,6 +2178,7 @@ function applyDestination(name){
     L.circleMarker([destLat,destLon],{radius:7,color:'#d4b85a',fillColor:'#d4b85a',fillOpacity:0.9,weight:2})
      .addTo(fsMap).bindPopup('<b>⚓ ТОЧКА ВЫХОДА</b><br>'+shortName);
   }
+  updateLocTabs();
   fetchAll();
   updateNavStrip();
   setSt('ТОЧКА ВЫХОДА: '+shortName);
@@ -1955,15 +2197,13 @@ function clearDestination(){
   document.getElementById('mvbtn-me').classList.add('active');
   if(destMarker){destMarker.remove();destMarker=null;}
   if(map&&uLat)map.setView([uLat,uLon],13);
+  updateLocTabs();
   updateNavStrip();
   fetchAll();
   setSt('ТОЧКА ВЫХОДА СБРОШЕНА · ДАННЫЕ ПО ТЕКУЩЕЙ ПОЗИЦИИ');
 }
 
-// Override coords for API calls — use dest if set
-function getCoords(){
-  return{lat:destLat||uLat,lon:destLon||uLon};
-}
+
 
 /* ── INIT ── */
 // restore vessel choice
