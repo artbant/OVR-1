@@ -451,6 +451,153 @@ body::after{
 .sos-line-num:hover{text-decoration:underline}
 .sos-line-region{color:var(--fg3);font-size:0.9em}
 
+/* DRIVE MODE */
+#drive-overlay{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  z-index:499;/* below sticky z-index:500 */
+  background:#000;
+  display:flex;flex-direction:column;
+  padding-top:var(--sticky-h,90px);
+}
+/* drive-exit-btn removed */
+
+.drive-grid{
+  flex:1;display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:auto auto auto auto auto;
+  gap:1px;
+  background:#111110;
+  overflow:hidden;
+}
+
+.drive-cell{
+  background:#000;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:10px 8px;
+  position:relative;
+}
+
+.drive-big{
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:clamp(2.8em,11vw,5em);
+  color:#ffffff;
+  line-height:1;
+  letter-spacing:-0.02em;
+  font-weight:400;
+}
+.drive-unit{
+  font-size:1em;color:#ffffff;
+  letter-spacing:0.12em;margin-top:2px;
+  font-family:'Share Tech Mono',monospace;
+}
+.drive-label{
+  font-size:0.8em;color:#ffffff;
+  letter-spacing:0.2em;text-transform:uppercase;
+  margin-top:6px;font-family:'Share Tech Mono',monospace;
+}
+.drive-sub{
+  font-size:0.88em;color:#ffffff;
+  letter-spacing:0.06em;margin-top:3px;
+  font-family:'Share Tech Mono',monospace;
+}
+
+/* verdict row — full width */
+.drive-verdict-row{
+  grid-column:1/-1;
+  background:#000;
+  display:flex;align-items:center;justify-content:center;
+  padding:8px 14px;
+  border-top:1px solid #111110;
+  border-bottom:1px solid #111110;
+}
+.drive-verdict{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(1.2em,5vw,1.8em);
+  letter-spacing:0.12em;text-transform:uppercase;
+  font-weight:400;
+}
+.drive-verdict.go{color:#72cc72;text-shadow:0 0 20px rgba(114,204,114,0.4)}
+.drive-verdict.caution{color:#d4b85a;text-shadow:0 0 20px rgba(212,184,90,0.4)}
+.drive-verdict.nogo{color:#cc6464;text-shadow:0 0 20px rgba(204,100,100,0.4)}
+
+/* warnings row — full width, only shown when needed */
+.drive-warn-row{
+  grid-column:1/-1;
+  background:#0a0800;
+  padding:5px 14px;
+  border-bottom:1px solid #111110;
+}
+.drive-warn-inner{
+  display:flex;flex-direction:column;gap:2px;
+}
+.drive-warn-item{
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.72em;color:#d4b85a;
+  letter-spacing:0.06em;
+}
+.drive-warn-item.bad{color:#cc6464}
+
+/* suggest banner */
+.drive-suggest{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  z-index:7000;
+  background:#0d0d0b;border:1px solid #d4b85a;
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;
+  font-family:'Share Tech Mono',monospace;font-size:0.65em;
+  color:#d4b85a;white-space:nowrap;
+  box-shadow:0 0 12px rgba(212,184,90,0.2);
+}
+.drive-suggest-btn{
+  background:transparent;border:1px solid #d4b85a;
+  color:#d4b85a;font-family:inherit;font-size:1em;
+  padding:1px 7px;cursor:pointer;letter-spacing:0.08em;
+}
+.drive-suggest-close{
+  background:transparent;border:none;
+  color:#605840;font-family:inherit;font-size:1.1em;cursor:pointer;
+}
+
+/* drive mode toggle */
+.drive-toggle{
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  display:flex;align-items:center;
+}
+.drive-toggle-track{
+  width:52px;height:28px;
+  background:#111110;
+  border:1px solid #2e2e28;
+  border-radius:14px;
+  position:relative;
+  transition:background 0.2s,border-color 0.2s;
+}
+.drive-toggle-track:hover{border-color:#404038}
+.drive-toggle-track.on{
+  background:#0d2010;
+  border-color:#3a7a3a;
+}
+.drive-toggle-thumb{
+  position:absolute;
+  top:3px;left:3px;
+  width:20px;height:20px;
+  background:#3a3a34;
+  border:1px solid #505048;
+  border-radius:50%;
+  transition:transform 0.2s,background 0.2s,box-shadow 0.2s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.6);
+}
+.drive-toggle-track.on .drive-toggle-thumb{
+  transform:translateX(24px);
+  background:#72cc72;
+  border-color:#4aaa4a;
+  box-shadow:0 0 8px rgba(114,204,114,0.5);
+}
+.drive-toggle-label-left,.drive-toggle-label-right{display:none}
+
 /* OFFLINE BANNER */
 .offline-banner{
   display:none;
@@ -472,6 +619,11 @@ body::after{
 <div class="sticky-shell">
   <div class="topbar">
     <div class="sysid">OVR·SEA</div>
+    <div class="drive-toggle" id="drive-toggle" onclick="toggleDriveMode()" title="Режим движения">
+      <div class="drive-toggle-track" id="drive-toggle-track">
+        <div class="drive-toggle-thumb"></div>
+      </div>
+    </div>
     <div class="clock" id="clock">--:--:--</div>
   </div>
   <div class="sticky-summary">
@@ -742,6 +894,79 @@ body::after{
   <div class="log-history" id="log-history" style="display:none"></div>
 </div>
 
+<!-- DRIVE MODE OVERLAY -->
+<div id="drive-overlay" style="display:none">
+  <div class="drive-grid">
+    <!-- row 1: wind + wave -->
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-wind">--</div>
+      <div class="drive-unit">М/С</div>
+      <div class="drive-label">ВЕТЕР</div>
+      <div class="drive-sub" id="dm-wind-dir">---</div>
+    </div>
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-wave">-.-</div>
+      <div class="drive-unit">М</div>
+      <div class="drive-label">ВОЛНА</div>
+      <div class="drive-sub" id="dm-wave-period">-- С</div>
+    </div>
+    <!-- verdict -->
+    <div class="drive-verdict-row">
+      <div class="drive-verdict go" id="dm-verdict">---</div>
+    </div>
+    <!-- forecast warnings -->
+    <div class="drive-warn-row" id="dm-warnings" style="display:none">
+      <div class="drive-warn-inner" id="dm-warnings-inner"></div>
+    </div>
+    <!-- row 2: course + dist -->
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-heading">---</div>
+      <div class="drive-unit" id="dm-heading-unit">°</div>
+      <div class="drive-label">КУРС</div>
+      <div class="drive-sub" id="dm-bearing">---</div>
+    </div>
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-dist">---</div>
+      <div class="drive-unit" id="dm-dist-unit">КМ</div>
+      <div class="drive-label">ДО ЦЕЛИ</div>
+      <div class="drive-sub" id="dm-eta">---</div>
+    </div>
+    <!-- row 3: speed + water -->
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-speed">--</div>
+      <div class="drive-unit">УЗ</div>
+      <div class="drive-label">СКОРОСТЬ</div>
+      <div class="drive-sub" id="dm-speed-kmh">-- КМ/Ч</div>
+    </div>
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-water">--</div>
+      <div class="drive-unit">°C</div>
+      <div class="drive-label">ВОДА</div>
+      <div class="drive-sub" id="dm-survival">---</div>
+    </div>
+    <!-- row 4: sunset + time to sunset -->
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-sunset">--:--</div>
+      <div class="drive-unit"></div>
+      <div class="drive-label">ЗАКАТ</div>
+      <div class="drive-sub" id="dm-sunrise">↑ --:--</div>
+    </div>
+    <div class="drive-cell">
+      <div class="drive-big" id="dm-sunset-remain">---</div>
+      <div class="drive-unit" id="dm-sunset-remain-unit">ЧАС</div>
+      <div class="drive-label">ДО ЗАКАТА</div>
+      <div class="drive-sub" id="dm-pressure">---- ГПА</div>
+    </div>
+  </div>
+</div>
+
+<!-- SUGGEST DRIVE MODE -->
+<div class="drive-suggest" id="drive-suggest" style="display:none">
+  <span>ДВИЖЕНИЕ ОБНАРУЖЕНО</span>
+  <button onclick="enterDriveMode()" class="drive-suggest-btn">[ РЕЖИМ ДВИЖЕНИЯ ]</button>
+  <button onclick="dismissDriveSuggest()" class="drive-suggest-close">✕</button>
+</div>
+
 <!-- FULLSCREEN OVERLAY -->
 <div id="fs-overlay">
   <div class="fs-topbar">
@@ -1007,6 +1232,7 @@ function onPos(p){
   const spd=p.coords.speed;
   const hdg=p.coords.heading;
   if(spd!=null&&spd>=0){
+    checkDriveSuggest(spd);
     const knots=(spd*1.94384).toFixed(1);
     const kmh=(spd*3.6).toFixed(1);
     const ssEl=document.getElementById('ss-speed');
@@ -1174,6 +1400,237 @@ function restoreTrack(){
 
 
 
+
+
+/* ── DRIVE MODE ── */
+let driveActive=false;
+let driveSuggestDismissed=false;
+let driveSpeedTimer=null;
+let driveSuggestShown=false;
+let driveUpdateInterval=null;
+
+function updateStickyHeight(){
+  const shell=document.getElementById('sticky-shell')||document.querySelector('.sticky-shell');
+  if(shell) document.documentElement.style.setProperty('--sticky-h', shell.offsetHeight+'px');
+}
+window.addEventListener('resize', updateStickyHeight);
+window.addEventListener('load', updateStickyHeight);
+setTimeout(updateStickyHeight, 300);
+
+function toggleDriveMode(){
+  if(driveActive) exitDriveMode();
+  else enterDriveMode();
+}
+
+function enterDriveMode(){
+  driveActive=true;
+  document.getElementById('drive-overlay').style.display='flex';
+  const track=document.getElementById('drive-toggle-track');
+  if(track) track.classList.add('on');
+  document.body.style.overflow='hidden';
+  hideDriveSuggest();
+  updateDriveMode();
+  driveUpdateInterval=setInterval(updateDriveMode,10000);
+  if(navigator.wakeLock){
+    navigator.wakeLock.request('screen').catch(()=>{});
+  }
+}
+
+function exitDriveMode(){
+  driveActive=false;
+  document.getElementById('drive-overlay').style.display='none';
+  const track=document.getElementById('drive-toggle-track');
+  if(track) track.classList.remove('on');
+  document.body.style.overflow='';
+  clearInterval(driveUpdateInterval);
+}
+
+function dismissDriveSuggest(){
+  driveSuggestDismissed=true;
+  hideDriveSuggest();
+}
+function hideDriveSuggest(){
+  const el=document.getElementById('drive-suggest');
+  if(el) el.style.display='none';
+  driveSuggestShown=false;
+}
+
+// suggest drive mode when moving >1.5 m/s for 30s
+function checkDriveSuggest(speedMs){
+  if(driveActive||driveSuggestDismissed||driveSuggestShown) return;
+  if(speedMs!=null&&speedMs>1.5){
+    if(!driveSpeedTimer){
+      driveSpeedTimer=setTimeout(()=>{
+        if(!driveActive&&!driveSuggestDismissed){
+          const el=document.getElementById('drive-suggest');
+          if(el){el.style.display='flex';driveSuggestShown=true;}
+        }
+        driveSpeedTimer=null;
+      },30000);
+    }
+  } else {
+    clearTimeout(driveSpeedTimer);
+    driveSpeedTimer=null;
+  }
+}
+
+function updateDriveMode(){
+  if(!driveActive) return;
+  const v=VESSELS[currentVessel];
+
+  // wind
+  const windEl=document.getElementById('wind-spd');
+  const windDirEl=document.getElementById('wind-dir');
+  const ws=windEl?parseFloat(windEl.textContent):null;
+  const dmWind=document.getElementById('dm-wind');
+  if(dmWind){
+    dmWind.textContent=ws!=null?ws:'--';
+    dmWind.style.color=ws==null?'#fff':ws<=v.windOk?'#72cc72':ws<=v.windWarn?'#d4b85a':'#cc6464';
+  }
+  const dmWindDir=document.getElementById('dm-wind-dir');
+  if(dmWindDir&&windDirEl) dmWindDir.textContent=windDirEl.textContent.split('(')[0].trim();
+
+  // wave
+  const waveEl=document.getElementById('wave-h');
+  const wv=waveEl?parseFloat(waveEl.textContent):null;
+  const dmWave=document.getElementById('dm-wave');
+  if(dmWave){
+    dmWave.textContent=(!isNaN(wv)&&wv!=null)?wv.toFixed(1):'--';
+    dmWave.style.color=isNaN(wv)||wv==null?'#fff':wv<=v.waveOk?'#72cc72':wv<=v.waveWarn?'#d4b85a':'#cc6464';
+  }
+  const wpEl=document.getElementById('wave-p');
+  const dmWaveP=document.getElementById('dm-wave-period');
+  if(dmWaveP&&wpEl) dmWaveP.textContent=wpEl.textContent;
+
+  // verdict
+  const verdEl=document.getElementById('итого-verdict');
+  const dmVerd=document.getElementById('dm-verdict');
+  if(dmVerd&&verdEl){
+    dmVerd.textContent=verdEl.textContent;
+    dmVerd.className='drive-verdict '+(
+      verdEl.className.includes('nogo')?'nogo':
+      verdEl.className.includes('caution')?'caution':'go'
+    );
+  }
+
+  // forecast warnings
+  renderDriveWarnings(v);
+
+  // heading from GPS
+  const ssHdg=document.getElementById('ss-heading');
+  const dmHdg=document.getElementById('dm-heading');
+  if(dmHdg&&ssHdg&&ssHdg.textContent!='---'){
+    const parts=ssHdg.textContent.split('°');
+    dmHdg.textContent=parts[0]||'---';
+    const hdgUnit=document.getElementById('dm-heading-unit');
+    if(hdgUnit) hdgUnit.textContent='° '+(parts[1]||'');
+  }
+
+  // bearing to dest
+  const ssBear=document.getElementById('ss-bearing');
+  const dmBear=document.getElementById('dm-bearing');
+  if(dmBear) dmBear.textContent=ssBear&&ssBear.textContent!='---°'?'→ '+ssBear.textContent:'БЕЗ ЦЕЛИ';
+
+  // dist to dest
+  const ssDist=document.getElementById('ss-dist');
+  const dmDist=document.getElementById('dm-dist');
+  const dmDistU=document.getElementById('dm-dist-unit');
+  if(dmDist&&ssDist&&ssDist.textContent!='-- км'){
+    const parts=ssDist.textContent.split(' ');
+    dmDist.textContent=parts[0]||'---';
+    if(dmDistU) dmDistU.textContent=parts[1]||'КМ';
+  } else if(dmDist){
+    dmDist.textContent='---';
+    if(dmDistU) dmDistU.textContent='';
+  }
+
+  // ETA
+  const ssEta=document.getElementById('ss-eta');
+  const dmEta=document.getElementById('dm-eta');
+  if(dmEta) dmEta.textContent=ssEta&&ssEta.textContent!='-- мин'?ssEta.textContent:'';
+
+  // speed
+  const ssSpd=document.getElementById('ss-speed');
+  const dmSpd=document.getElementById('dm-speed');
+  if(dmSpd&&ssSpd) dmSpd.textContent=ssSpd.textContent.replace(' уз','');
+  const dmSpdKmh=document.getElementById('dm-speed-kmh');
+  if(dmSpdKmh&&state.gpsSpeedMs!=null)
+    dmSpdKmh.textContent=(state.gpsSpeedMs*3.6).toFixed(1)+' КМ/Ч';
+
+  // water temp
+  const wtEl=document.getElementById('water-temp');
+  const dmWt=document.getElementById('dm-water');
+  if(dmWt&&wtEl) dmWt.textContent=wtEl.textContent;
+  const dmSurv=document.getElementById('dm-survival');
+  const survEl=document.getElementById('water-safety');
+  if(dmSurv&&survEl) dmSurv.textContent=survEl.textContent;
+
+  // sunset
+  const sunSetEl=document.getElementById('sun-set');
+  const sunRiseEl=document.getElementById('sun-rise');
+  const sunRemEl=document.getElementById('sun-remain');
+  const dmSunset=document.getElementById('dm-sunset');
+  const dmSunrise=document.getElementById('dm-sunrise');
+  const dmRemain=document.getElementById('dm-sunset-remain');
+  const dmRemainU=document.getElementById('dm-sunset-remain-unit');
+  if(dmSunset&&sunSetEl) dmSunset.textContent=sunSetEl.textContent;
+  if(dmSunrise&&sunRiseEl) dmSunrise.textContent='↑ '+sunRiseEl.textContent;
+  if(dmRemain&&sunRemEl){
+    const txt=sunRemEl.textContent; // "до заката: 3ч 42мин"
+    const hMatch=txt.match(/(\d+)ч/);
+    const mMatch=txt.match(/(\d+)мин/);
+    if(hMatch){dmRemain.textContent=hMatch[1];if(dmRemainU)dmRemainU.textContent='ЧАС '+(mMatch?mMatch[1]+'М':'');}
+    else if(mMatch){dmRemain.textContent=mMatch[1];if(dmRemainU)dmRemainU.textContent='МИН';}
+    else{dmRemain.textContent='---';if(dmRemainU)dmRemainU.textContent='';}
+  }
+
+  // pressure
+  const pressEl=document.getElementById('wx-pressure');
+  const pressTrendEl=document.getElementById('wx-pressure-trend');
+  const dmPress=document.getElementById('dm-pressure');
+  if(dmPress&&pressEl)
+    dmPress.textContent=(pressEl.textContent||'----')+' '+(pressTrendEl?pressTrendEl.textContent:'');
+}
+
+function renderDriveWarnings(v){
+  const warnRow=document.getElementById('dm-warnings');
+  const warnInner=document.getElementById('dm-warnings-inner');
+  if(!warnRow||!warnInner)return;
+
+  const wind=state.hourlyWind||[];
+  const wave=state.hourlyWave||[];
+  const now=new Date().getHours();
+  const warnings=[];
+
+  for(let i=1;i<=6;i++){
+    if(i>=wind.length)break;
+    const ws=wind[i];
+    const wv=wave[i]!=null?wave[i]:null;
+    const h=(now+i)%24;
+    const label='ЧЕРЕЗ '+i+'Ч ('+String(h).padStart(2,'0')+':00)';
+
+    // crossed into warn zone?
+    const prevWs=wind[i-1];
+    const prevWv=wave[i-1]!=null?wave[i-1]:null;
+
+    if(ws>v.windWarn&&(prevWs==null||prevWs<=v.windWarn)){
+      warnings.push({txt:label+': ВЕТЕР '+ws.toFixed(1)+' М/С',cls:'bad'});
+    } else if(ws>v.windOk&&(prevWs==null||prevWs<=v.windOk)){
+      warnings.push({txt:label+': ВЕТЕР ↑ '+ws.toFixed(1)+' М/С',cls:''});
+    }
+    if(wv!=null&&wv>v.waveWarn&&(prevWv==null||prevWv<=v.waveWarn)){
+      warnings.push({txt:label+': ВОЛНА '+wv.toFixed(1)+' М',cls:'bad'});
+    } else if(wv!=null&&wv>v.waveOk&&(prevWv==null||prevWv<=v.waveOk)){
+      warnings.push({txt:label+': ВОЛНА ↑ '+wv.toFixed(1)+' М',cls:''});
+    }
+  }
+
+  if(!warnings.length){warnRow.style.display='none';return;}
+  warnRow.style.display='block';
+  warnInner.innerHTML=warnings.slice(0,3).map(w=>
+    '<div class="drive-warn-item '+w.cls+'">⚠ '+w.txt+'</div>'
+  ).join('');
+}
 
 /* ── LOGBOOK ── */
 function saveLogEntry(){
@@ -1827,6 +2284,7 @@ function updateStickySummary(){
     }
   }
   updateNavStrip();
+  if(driveActive) updateDriveMode();
 }
 
 /* ── PRESSURE TREND ── */
