@@ -51,7 +51,7 @@ body::after{
   border-bottom:1px solid var(--dim);
 }
 /* top bar inside sticky */
-.topbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .sysid{font-size:1.1em;color:var(--acc);letter-spacing:0.12em}
 .clock{color:var(--fg2);font-size:0.95em}
 /* sticky summary strip */
@@ -454,13 +454,24 @@ body::after{
 /* DRIVE MODE */
 #drive-overlay{
   position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  z-index:499;/* below sticky z-index:500 */
+  inset:0;
+  z-index:600;/* above sticky */
   background:#000;
   display:flex;flex-direction:column;
-  padding-top:var(--sticky-h,90px);
+  padding-top:env(safe-area-inset-top);
 }
-/* drive-exit-btn removed */
+/* drive minimal topbar */
+.drive-topbar-min{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:calc(6px + env(safe-area-inset-top)) 14px 6px;
+  border-bottom:1px solid #111110;
+  flex-shrink:0;
+  background:#000;
+}
+.drive-topbar-clock{
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.9em;color:#505048;letter-spacing:0.1em;
+}
 
 .drive-grid{
   flex:1;display:grid;
@@ -568,10 +579,10 @@ body::after{
   display:flex;align-items:center;
 }
 .drive-toggle-track{
-  width:52px;height:28px;
-  background:#111110;
-  border:1px solid #2e2e28;
-  border-radius:14px;
+  width:36px;height:20px;
+  background:#1a1a16;
+  border:1px solid #2a2a24;
+  border-radius:10px;
   position:relative;
   transition:background 0.2s,border-color 0.2s;
 }
@@ -582,19 +593,19 @@ body::after{
 }
 .drive-toggle-thumb{
   position:absolute;
-  top:3px;left:3px;
-  width:20px;height:20px;
+  top:2px;left:2px;
+  width:14px;height:14px;
   background:#3a3a34;
   border:1px solid #505048;
   border-radius:50%;
   transition:transform 0.2s,background 0.2s,box-shadow 0.2s;
-  box-shadow:0 1px 4px rgba(0,0,0,0.6);
+  box-shadow:0 1px 3px rgba(0,0,0,0.6);
 }
 .drive-toggle-track.on .drive-toggle-thumb{
-  transform:translateX(24px);
+  transform:translateX(16px);
   background:#72cc72;
   border-color:#4aaa4a;
-  box-shadow:0 0 8px rgba(114,204,114,0.5);
+  box-shadow:0 0 6px rgba(114,204,114,0.5);
 }
 .drive-toggle-label-left,.drive-toggle-label-right{display:none}
 
@@ -624,7 +635,6 @@ body::after{
         <div class="drive-toggle-thumb"></div>
       </div>
     </div>
-    <div class="clock" id="clock">--:--:--</div>
   </div>
   <div class="sticky-summary">
     <div class="ss-item">
@@ -861,7 +871,6 @@ body::after{
   <div class="map-view-btns">
     <button class="map-vbtn active" id="mvbtn-me" onclick="mapViewMe()">[ Я ]</button>
     <button class="map-vbtn" id="mvbtn-dest" onclick="mapViewDest()" style="display:none">[ ВЫХОД ]</button>
-    <button class="map-vbtn" id="mvbtn-marinas" onclick="toggleMarinas()">[ МАРИНЫ ]</button>
     <button class="map-vbtn" id="mvbtn-track" onclick="toggleTracking()">[ ТРЕК ]</button>
   </div>
   <button class="map-expand-btn" onclick="openFullscreen('sea')">[ РАЗВЕРНУТЬ ]</button>
@@ -896,6 +905,14 @@ body::after{
 
 <!-- DRIVE MODE OVERLAY -->
 <div id="drive-overlay" style="display:none">
+  <div class="drive-topbar-min">
+    <div class="drive-topbar-clock" id="drive-clock2"></div>
+    <div class="drive-toggle" onclick="toggleDriveMode()">
+      <div class="drive-toggle-track on" id="drive-toggle-track2">
+        <div class="drive-toggle-thumb"></div>
+      </div>
+    </div>
+  </div>
   <div class="drive-grid">
     <!-- row 1: wind + wave -->
     <div class="drive-cell">
@@ -944,18 +961,18 @@ body::after{
       <div class="drive-label">ВОДА</div>
       <div class="drive-sub" id="dm-survival">---</div>
     </div>
-    <!-- row 4: sunset + time to sunset -->
+    <!-- row 4: sunset + pressure -->
     <div class="drive-cell">
       <div class="drive-big" id="dm-sunset">--:--</div>
-      <div class="drive-unit"></div>
-      <div class="drive-label">ЗАКАТ</div>
-      <div class="drive-sub" id="dm-sunrise">↑ --:--</div>
+      <div class="drive-unit">ЗАКАТ</div>
+      <div class="drive-sub" id="dm-sunrise">↑ ВОСХОД --:--</div>
+      <div class="drive-sub" id="dm-sunset-remain" style="margin-top:4px;color:#d4b85a"></div>
     </div>
     <div class="drive-cell">
-      <div class="drive-big" id="dm-sunset-remain">---</div>
-      <div class="drive-unit" id="dm-sunset-remain-unit">ЧАС</div>
-      <div class="drive-label">ДО ЗАКАТА</div>
-      <div class="drive-sub" id="dm-pressure">---- ГПА</div>
+      <div class="drive-big" id="dm-pressure-val">----</div>
+      <div class="drive-unit">ГПА</div>
+      <div class="drive-label">ДАВЛЕНИЕ</div>
+      <div class="drive-sub" id="dm-pressure-trend"></div>
     </div>
   </div>
 </div>
@@ -1010,15 +1027,15 @@ body::after{
 
 <script>
 /* ── CLOCK ── */
-function tick(){document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8);}
-setInterval(tick,1000);tick();
+function tick(){} // clock removed
+setInterval(tick,1000);
 function setSt(m){document.getElementById('statusline').innerHTML=m+'<span class="cursor"></span>';}
 
 /* ── MAP ── */
 let map,uMarker,destMarker,marinaMarkers=[],marinasShown=false;
 function initMap(lat,lon){
   if(map){map.setView([lat,lon],13);return;}
-  map=L.map('map',{zoomControl:true,attributionControl:false}).setView([lat,lon],13);
+  map=L.map('map',{zoomControl:false,attributionControl:false}).setView([lat,lon],13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
   L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
   uMarker=L.circleMarker([lat,lon],{radius:6,color:'#fff',fillColor:'#fff',fillOpacity:1,weight:2})
@@ -1138,7 +1155,7 @@ function mapViewDest(){
 
 /* marina search via Overpass */
 async function toggleMarinas(){
-  const btn=document.getElementById('mvbtn-marinas');
+  const btn=null; // button removed
   if(marinasShown){
     marinaMarkers.forEach(m=>m.remove());
     marinaMarkers=[];
@@ -1427,6 +1444,11 @@ function enterDriveMode(){
   document.getElementById('drive-overlay').style.display='flex';
   const track=document.getElementById('drive-toggle-track');
   if(track) track.classList.add('on');
+  const track2=document.getElementById('drive-toggle-track2');
+  if(track2) track2.classList.add('on');
+  // hide sticky so it doesn't show through
+  const sticky=document.querySelector('.sticky-shell');
+  if(sticky) sticky.style.visibility='hidden';
   document.body.style.overflow='hidden';
   hideDriveSuggest();
   updateDriveMode();
@@ -1441,6 +1463,11 @@ function exitDriveMode(){
   document.getElementById('drive-overlay').style.display='none';
   const track=document.getElementById('drive-toggle-track');
   if(track) track.classList.remove('on');
+  const track2=document.getElementById('drive-toggle-track2');
+  if(track2) track2.classList.remove('on');
+  // restore sticky
+  const sticky=document.querySelector('.sticky-shell');
+  if(sticky) sticky.style.visibility='visible';
   document.body.style.overflow='';
   clearInterval(driveUpdateInterval);
 }
@@ -1572,24 +1599,23 @@ function updateDriveMode(){
   const dmSunset=document.getElementById('dm-sunset');
   const dmSunrise=document.getElementById('dm-sunrise');
   const dmRemain=document.getElementById('dm-sunset-remain');
-  const dmRemainU=document.getElementById('dm-sunset-remain-unit');
   if(dmSunset&&sunSetEl) dmSunset.textContent=sunSetEl.textContent;
-  if(dmSunrise&&sunRiseEl) dmSunrise.textContent='↑ '+sunRiseEl.textContent;
+  if(dmSunrise&&sunRiseEl) dmSunrise.textContent='↑ ВОСХОД '+sunRiseEl.textContent;
   if(dmRemain&&sunRemEl){
-    const txt=sunRemEl.textContent; // "до заката: 3ч 42мин"
-    const hMatch=txt.match(/(\d+)ч/);
-    const mMatch=txt.match(/(\d+)мин/);
-    if(hMatch){dmRemain.textContent=hMatch[1];if(dmRemainU)dmRemainU.textContent='ЧАС '+(mMatch?mMatch[1]+'М':'');}
-    else if(mMatch){dmRemain.textContent=mMatch[1];if(dmRemainU)dmRemainU.textContent='МИН';}
-    else{dmRemain.textContent='---';if(dmRemainU)dmRemainU.textContent='';}
+    const txt=sunRemEl.textContent;
+    // show "ЧЕР 3Ч 42М" or "ЗАКАТ ПРОШЁЛ"
+    if(txt.includes('ПРОШЁЛ')){dmRemain.textContent='ЗАКАТ ПРОШЁЛ';}
+    else if(txt.includes('восхода')){dmRemain.textContent=txt.replace('до восхода:','ДО ВОСХОДА').toUpperCase();}
+    else{dmRemain.textContent=txt.replace('до заката:','ЧЕР').toUpperCase();}
   }
 
   // pressure
   const pressEl=document.getElementById('wx-pressure');
   const pressTrendEl=document.getElementById('wx-pressure-trend');
-  const dmPress=document.getElementById('dm-pressure');
-  if(dmPress&&pressEl)
-    dmPress.textContent=(pressEl.textContent||'----')+' '+(pressTrendEl?pressTrendEl.textContent:'');
+  const dmPressVal=document.getElementById('dm-pressure-val');
+  const dmPressTrend=document.getElementById('dm-pressure-trend');
+  if(dmPressVal&&pressEl) dmPressVal.textContent=pressEl.textContent.replace(' ГПА','').replace(' гПа','').trim()||'----';
+  if(dmPressTrend&&pressTrendEl) dmPressTrend.textContent=pressTrendEl.textContent;
 }
 
 function renderDriveWarnings(v){
